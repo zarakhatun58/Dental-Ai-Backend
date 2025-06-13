@@ -18,17 +18,14 @@ const MONGO_URI = process.env.MONGO_URI || `mongodb+srv://${process.env.DB_USER}
 mongoose_1.default.connect(MONGO_URI)
     .then(() => {
     console.log("MongoDB connected");
+    app.get("/", (req, res) => {
+        res.send("Backend is running on Render 🚀");
+    });
     app.listen(PORT, () => {
         console.log(`Server running on port ${PORT}`);
     });
 })
     .catch((err) => {
     console.error("Database connection error", err);
-});
-app.get("/", (req, res) => {
-    res.send("API is running... on port 5000");
-});
-app.listen(PORT, () => {
-    console.log(`server running on ${PORT}`);
 });
 exports.default = app;
