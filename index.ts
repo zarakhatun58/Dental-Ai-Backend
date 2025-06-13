@@ -30,7 +30,7 @@ mongoose.connect(MONGO_URI)
 
 
 app.get("/", (req, res) => {
-  res.send("API is running...");
+  res.send("API is running... on port 5000");
 });
 
 app.listen(PORT, () => {
