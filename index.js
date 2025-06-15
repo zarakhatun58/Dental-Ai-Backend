@@ -8,6 +8,7 @@ import appointmentRoutes from "./src/routes/appointmentRoutes.js";
 import analyticsRoutes from "./src/routes/analyticsRoutes.js";
 import campaignRoutes from "./src/routes/campaignRoutes.js";
 import paymentRoutes from "./src/routes/paymentRoutes.js";
+import outreachRoutes from "./src/routes/outreachRoutes.js";
 
 dotenv.config();
 
@@ -23,6 +24,11 @@ app.use('/api/appointments', appointmentRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/campaigns", campaignRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/outreach", outreachRoutes);
+
+
+
+
 
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@dental-ai.fsi3q7c.mongodb.net/`;

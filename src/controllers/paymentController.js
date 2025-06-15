@@ -1,16 +1,18 @@
-import Payment from "../models/patient.js";
-import Patient from "../models/patient.js";
+import Payment from "../models/payment.js";  // ✅ Correct Payment model
+import Patient from "../models/patient.js";  // ✅ Correct Patient model
 
-// ✅ Create payment
+// ✅ Create a new payment
 export const createPayment = async (req, res) => {
   try {
     const { patient, amount, method, status, notes } = req.body;
 
+    // Validate patient exists
     const existingPatient = await Patient.findById(patient);
     if (!existingPatient) {
       return res.status(404).json({ message: "Patient not found" });
     }
 
+    // Create payment
     const payment = new Payment({
       patient,
       amount,
@@ -29,34 +31,43 @@ export const createPayment = async (req, res) => {
 // ✅ Get all payments
 export const getAllPayments = async (_req, res) => {
   try {
-    const payments = await Payment.find().populate("patient").sort({ date: -1 });
+    const payments = await Payment.find()
+      .populate("patient", "name email phone") // Optional: limit patient fields
+      .sort({ createdAt: -1 });
+
     res.status(200).json(payments);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-// ✅ Update payment
+// ✅ Update a payment
 export const updatePayment = async (req, res) => {
   try {
     const { id } = req.params;
-    const payment = await Payment.findByIdAndUpdate(id, req.body, { new: true });
+    const updated = await Payment.findByIdAndUpdate(id, req.body, {
+      new: true,
+    });
 
-    if (!payment) return res.status(404).json({ message: "Payment not found" });
+    if (!updated) {
+      return res.status(404).json({ message: "Payment not found" });
+    }
 
-    res.status(200).json({ message: "Payment updated", payment });
+    res.status(200).json({ message: "Payment updated", payment: updated });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-// ✅ Delete payment
+// ✅ Delete a payment
 export const deletePayment = async (req, res) => {
   try {
     const { id } = req.params;
-    const payment = await Payment.findByIdAndDelete(id);
+    const deleted = await Payment.findByIdAndDelete(id);
 
-    if (!payment) return res.status(404).json({ message: "Payment not found" });
+    if (!deleted) {
+      return res.status(404).json({ message: "Payment not found" });
+    }
 
     res.status(200).json({ message: "Payment deleted" });
   } catch (error) {
