@@ -1,3 +1,4 @@
+import Twilio from "twilio";
 import Campaign from "../models/Campaign.js";
 import { sendSMS } from "../utils/sendSMS.js"; 
 
@@ -55,7 +56,7 @@ export const deleteCampaign = async (req, res) => {
 
 
 
-const twilioClient = twilio(
+const twilioClient = Twilio(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
 );
