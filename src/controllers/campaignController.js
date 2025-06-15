@@ -1,5 +1,5 @@
 // import twilio from "twilio";
-import Campaign from "../models/campaign.js";
+import Campaign from '../models/campaign.js';
 import Patient from "../models/patient.js";
 import { sendSMS } from "../utils/sendSMS.js"; 
 
