@@ -2,13 +2,13 @@ import mongoose from "mongoose";
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import patientRoutes from "./src/routes/patientRoutes.js";
-import authRoutes from "./src/routes/authRoutes.js";
-import appointmentRoutes from "./src/routes/appointmentRoutes.js";
-import analyticsRoutes from "./src/routes/analyticsRoutes.js";
-import campaignRoutes from "./src/routes/campaignRoutes.js";
-import paymentRoutes from "./src/routes/paymentRoutes.js";
-import outreachRoutes from "./src/routes/outreachRoutes.js";
+import patientRoutes from "./routes/patientRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
+import appointmentRoutes from "./routes/appointmentRoutes.js";
+import analyticsRoutes from "./routes/analyticsRoutes.js";
+import campaignRoutes from "./routes/campaignRoutes.js";
+import paymentRoutes from "./routes/paymentRoutes.js";
+import outreachRoutes from "./routes/outreachRoutes.js";
 
 dotenv.config();
 
