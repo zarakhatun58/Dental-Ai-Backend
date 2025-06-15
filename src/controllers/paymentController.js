@@ -1,4 +1,4 @@
-import Payment from "../models/payment.js"; 
+import Payment from "../models/payment"; 
 import Patient from "../models/patient.js";  
 
 // ✅ Create a new payment
