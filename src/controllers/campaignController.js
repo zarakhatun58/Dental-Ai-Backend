@@ -1,5 +1,5 @@
 import Twilio from "twilio";
-import Campaign from "../models/campaign.js";
+import {Campaign} from "../models/campaign.js";
 import { sendSMS } from "../utils/sendSMS.js"; 
 
 // ✅ Create campaign
