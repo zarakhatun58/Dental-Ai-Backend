@@ -1,5 +1,6 @@
-import Twilio from "twilio";
+// import twilio from "twilio";
 import Campaign from "../models/campaign.js";
+import Patient from "../models/patient.js";
 import { sendSMS } from "../utils/sendSMS.js"; 
 
 // ✅ Create campaign
@@ -56,103 +57,103 @@ export const deleteCampaign = async (req, res) => {
 
 
 
-const twilioClient = Twilio(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN
-);
-
-// export const sendOutreach = async (req, res) => {
-//   try {
-//     const { patientIds, message } = req.body;
-
-//     const patients = await Patient.find({ _id: { $in: patientIds } });
-
-//     let smsSent = 0;
-//     let emailSent = 0;
-
-//     for (const p of patients) {
-//       // Send SMS using Twilio
-//       if (p.phone) {
-//         try {
-//           await twilioClient.messages.create({
-//             body: message,
-//             from: process.env.TWILIO_PHONE_NUMBER,
-//             to: p.phone,
-//           });
-//           smsSent++;
-//         } catch (err) {
-//           console.error(`❌ SMS failed for ${p.phone}:`, err.message);
-//         }
-//       }
-
-//       // Send Email using SendGrid
-//       if (p.email) {
-//         try {
-//           await sgMail.send({
-//             to: p.email,
-//             from: process.env.EMAIL_FROM,
-//             subject: "We Miss You at Our Dental Clinic!",
-//             text: message,
-//           });
-//           emailSent++;
-//         } catch (err) {
-//           console.error(`❌ Email failed for ${p.email}:`, err.message);
-//         }
-//       }
-//     }
-
-//     res.status(200).json({
-//       message: `Outreach sent.`,
-//       totalPatients: patients.length,
-//       smsSent,
-//       emailSent,
-//     });
-//   } catch (error) {
-//     res.status(500).json({ error: error.message });
-//   }
-// };
-
+// const twilioClient = twilio(
+//   process.env.TWILIO_ACCOUNT_SID,
+//   process.env.TWILIO_AUTH_TOKEN
+// );
 
 export const sendOutreach = async (req, res) => {
   try {
     const { patientIds, message } = req.body;
 
     const patients = await Patient.find({ _id: { $in: patientIds } });
-    const sentTo = [];
+
+    let smsSent = 0;
+    let emailSent = 0;
 
     for (const p of patients) {
-      // ✅ SMS
-      try {
-        await twilioClient.messages.create({
-          body: message,
-          from: process.env.TWILIO_PHONE_NUMBER,
-          to: p.phone,
-        });
-      } catch (err) {
-        console.error(`SMS to ${p.phone} failed:`, err.message);
+      // Send SMS using Twilio
+      if (p.phone) {
+        try {
+          await twilioClient.messages.create({
+            body: message,
+            from: process.env.TWILIO_PHONE_NUMBER,
+            to: p.phone,
+          });
+          smsSent++;
+        } catch (err) {
+          console.error(`❌ SMS failed for ${p.phone}:`, err.message);
+        }
       }
 
-      // ✅ Email
-      try {
-        await transporter.sendMail({
-          from: `"Dental Clinic" <${process.env.EMAIL_USER}>`,
-          to: p.email,
-          subject: "We Miss You! Book Your Appointment Today 🦷",
-          text: message,
-        });
-        console.log(`✅ Email sent to ${p.email}`);
-      } catch (err) {
-        console.error(`Email to ${p.email} failed:`, err.message);
+      // Send Email using SendGrid
+      if (p.email) {
+        try {
+          await sgMail.send({
+            to: p.email,
+            from: process.env.EMAIL_FROM,
+            subject: "We Miss You at Our Dental Clinic!",
+            text: message,
+          });
+          emailSent++;
+        } catch (err) {
+          console.error(`❌ Email failed for ${p.email}:`, err.message);
+        }
       }
-
-      sentTo.push({ name: p.name, phone: p.phone, email: p.email });
     }
 
     res.status(200).json({
-      message: `Outreach sent to ${sentTo.length} patients.`,
-      patients: sentTo,
+      message: `Outreach sent.`,
+      totalPatients: patients.length,
+      smsSent,
+      emailSent,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+
+
+// export const sendOutreach = async (req, res) => {
+//   try {
+//     const { patientIds, message } = req.body;
+
+//     const patients = await Patient.find({ _id: { $in: patientIds } });
+//     const sentTo = [];
+
+//     for (const p of patients) {
+//       // ✅ SMS
+//       try {
+//         await twilioClient.messages.create({
+//           body: message,
+//           from: process.env.TWILIO_PHONE_NUMBER,
+//           to: p.phone,
+//         });
+//       } catch (err) {
+//         console.error(`SMS to ${p.phone} failed:`, err.message);
+//       }
+
+//       // ✅ Email
+//       try {
+//         await transporter.sendMail({
+//           from: `"Dental Clinic" <${process.env.EMAIL_USER}>`,
+//           to: p.email,
+//           subject: "We Miss You! Book Your Appointment Today 🦷",
+//           text: message,
+//         });
+//         console.log(`✅ Email sent to ${p.email}`);
+//       } catch (err) {
+//         console.error(`Email to ${p.email} failed:`, err.message);
+//       }
+
+//       sentTo.push({ name: p.name, phone: p.phone, email: p.email });
+//     }
+
+//     res.status(200).json({
+//       message: `Outreach sent to ${sentTo.length} patients.`,
+//       patients: sentTo,
+//     });
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// };
