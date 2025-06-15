@@ -1,5 +1,5 @@
-import Payment from "../models/payment.js";  // ✅ Correct Payment model
-import Patient from "../models/patient.js";  // ✅ Correct Patient model
+import Payment from "../models/payment.js"; 
+import Patient from "../models/patient.js";  
 
 // ✅ Create a new payment
 export const createPayment = async (req, res) => {
