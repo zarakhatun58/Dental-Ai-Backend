@@ -66,3 +66,64 @@ export const deleteAppointment = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+export const bookAppointment = async (req, res) => {
+  try {
+    const { patient, doctor, appointmentDate, time, reason } = req.body;
+
+    // Check required fields
+   if (!patient || !doctor || !appointmentDate || !time) {
+  console.log({ patient, doctor, appointmentDate, time });
+  return res.status(400).json({ error: "All fields are required" });
+}
+
+
+    // Optional: check for conflict
+    const exists = await Appointment.findOne({ appointmentDate, time });
+    if (exists) {
+      return res.status(409).json({ error: "Slot already booked" });
+    }
+
+    // Create and save appointment
+    const appointment = new Appointment({
+      patient,
+      doctor,
+      appointmentDate,
+      time,
+      reason,
+    });
+
+    await appointment.save();
+
+    res.status(201).json({
+      message: "Appointment booked successfully",
+      appointment,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const markNoShow = async (req, res) => {
+  try {
+    const { appointmentId } = req.params;
+
+    const appointment = await Appointment.findById(appointmentId);
+    if (!appointment) return res.status(404).json({ error: "Appointment not found" });
+
+    appointment.status = "Cancelled";
+    await appointment.save();
+
+    const patient = await Patient.findById(appointment.patient);
+    patient.noShowCount += 1;
+
+    if (patient.noShowCount >= 3) {
+      patient.flagged = true; // 🚩 Flag frequent no-shower
+    }
+
+    await patient.save();
+
+    res.json({ message: "Marked as no-show", patient });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

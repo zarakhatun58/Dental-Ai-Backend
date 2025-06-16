@@ -37,3 +37,8 @@ export const getAnalytics = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const getNoShowAnalytics = async (req, res) => {
+  const frequentNoShows = await Patient.find({ noShowCount: { $gte: 3 } });
+  res.json({ frequentNoShows });
+};

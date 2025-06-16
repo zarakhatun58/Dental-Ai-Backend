@@ -1,12 +1,12 @@
 {
   "name": "backend",
   "version": "1.0.0",
- "main": "src/index.js",
+  "main": "src/index.js",
   "type": "module",
   "scripts": {
     "start": "node src/index.js",
-  "dev": "nodemon src/index.js",
-     "build": "echo 'No build step needed'"
+    "dev": "nodemon src/index.js",
+    "build": "echo 'No build step needed'"
   },
   "keywords": [],
   "author": "",
@@ -20,7 +20,9 @@
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.15.2",
+    "multer": "^2.0.1",
     "nodemailer": "^7.0.3",
+    "stripe": "^18.2.1",
     "twilio": "^5.7.1"
   },
   "devDependencies": {

@@ -6,6 +6,10 @@ const patientSchema = new mongoose.Schema({
   phone: { type: String, required: true },
   lastVisit: { type: Date, default: null },
   noShowCount: { type: Number, default: 0 },
+  flagged: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const Patient = mongoose.model("Patient", patientSchema);

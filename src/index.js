@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from 'url';
 import patientRoutes from "./routes/patientRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import appointmentRoutes from "./routes/appointmentRoutes.js";
@@ -9,6 +11,11 @@ import analyticsRoutes from "./routes/analyticsRoutes.js";
 import campaignRoutes from "./routes/campaignRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import outreachRoutes from "./routes/outreachRoutes.js";
+import availabilityRoutes from "./routes/availabilityRoutes.js";
+import doctorRoutes from "./routes/doctorRoutes.js";
+
+
+
 
 dotenv.config();
 
@@ -22,12 +29,16 @@ app.use("/api/auth", authRoutes);
 app.use("/api/patients", patientRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use("/api/analytics", analyticsRoutes);
-app.use("/api/campaigns", campaignRoutes);
+app.use("/api/campaigns", campaignRoutes)
 app.use("/api/payments", paymentRoutes);
 app.use("/api/outreach", outreachRoutes);
+app.use("/api/availability", availabilityRoutes);
+app.use("/api/doctors", doctorRoutes);
+// app.use('/uploads', express.static('uploads'));
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-
-
+app.use('/uploads', express.static(path.join(__dirname, 'src/uploads')));
 
 
 const PORT = process.env.PORT || 5000;
