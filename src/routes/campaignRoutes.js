@@ -4,7 +4,7 @@ import {
   getAllCampaigns,
   updateCampaign,
   deleteCampaign,
-} from "../controllers/campaignController.js";
+} from "../controllers/campController.js";
 
 const router = express.Router();
 

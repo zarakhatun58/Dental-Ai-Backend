@@ -1,5 +1,5 @@
 
-import Campaign from ".src/models/campaign.js";
+import Campaign from "../models/campa.js";
 import twilio from "twilio";
 
 
