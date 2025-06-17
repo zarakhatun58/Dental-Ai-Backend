@@ -1,5 +1,7 @@
+
+import Campaign from ".src/models/campaign.js";
 import twilio from "twilio";
-import Campaign from "../models/campaign.js";
+
 
 // ✅ Create campaign
 export const createCampaign = async (req, res) => {
