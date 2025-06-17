@@ -1,6 +1,5 @@
 import twilio from "twilio";
 import Campaign from "../models/campaign.js";
-import { sendSMS } from "../utils/sendSMS.js"; 
 
 // ✅ Create campaign
 export const createCampaign = async (req, res) => {

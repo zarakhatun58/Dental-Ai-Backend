@@ -75,8 +75,9 @@ export const deletePayment = async (req, res) => {
   }
 };
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const stripe = new Stripe(`${process.env.STRIPE_SECRET_KEY}`);
 
+console.log("Stripe Key: ", process.env.STRIPE_SECRET_KEY)
 export const createCheckoutSession = async (req, res) => {
   const { patientId, email } = req.body;
 
