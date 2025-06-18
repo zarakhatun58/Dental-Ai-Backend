@@ -14,12 +14,27 @@ export const createDoctor = async (req, res) => {
     const { name, specialty, email, phone } = req.body;
     const image = req.file ? `/uploads/doctors/${req.file.filename}` : "";
 
+    // Normalize array fields
+    const availableDays = Array.isArray(req.body.availableDays)
+      ? req.body.availableDays
+      : req.body.availableDays
+      ? [req.body.availableDays]
+      : [];
+
+    const availableSlots = Array.isArray(req.body.availableSlots)
+      ? req.body.availableSlots
+      : req.body.availableSlots
+      ? [req.body.availableSlots]
+      : [];
+
     const newDoctor = new Doctor({
       name,
       specialty,
       email,
       phone,
       image,
+      availableDays,
+      availableSlots,
     });
 
     await newDoctor.save();
@@ -28,6 +43,7 @@ export const createDoctor = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 export const updateDoctor = async (req, res) => {
   try {
