@@ -20,7 +20,7 @@ import Patient from '../models/patient.js';
 // };
 export const addPatient = async (req, res) => {
   try {
-    let { name, email, phone, lastVisit } = req.body;
+    let { name, email, phone,gender, age, address, lastVisit } = req.body;
 
     // Ensure phone number starts with country code (e.g., +91 for India)
     if (!phone.startsWith('+')) {
@@ -32,7 +32,7 @@ export const addPatient = async (req, res) => {
       return res.status(400).json({ message: 'Patient already exists' });
     }
 
-    const newPatient = new Patient({ name, email, phone, lastVisit });
+    const newPatient = new Patient({ name, email, phone,gender, age, address, lastVisit });
     await newPatient.save();
 
     res.status(201).json({ message: 'Patient added successfully', patient: newPatient });
