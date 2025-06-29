@@ -13,7 +13,7 @@ import paymentRoutes from "./routes/paymentRoutes.js";
 import outreachRoutes from "./routes/outreachRoutes.js";
 import availabilityRoutes from "./routes/availabilityRoutes.js";
 import doctorRoutes from "./routes/doctorRoutes.js";
-
+import clinicRoutes from "./routes/clinicRoutes.js";
 
 
 
@@ -34,6 +34,8 @@ app.use("/api/payments", paymentRoutes);
 app.use("/api/outreach", outreachRoutes);
 app.use("/api/availability", availabilityRoutes);
 app.use("/api/doctors", doctorRoutes);
+app.use("/api/clinics", clinicRoutes);
+
 // app.use('/uploads', express.static('uploads'));
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
