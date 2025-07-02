@@ -14,7 +14,12 @@ import outreachRoutes from "./routes/outreachRoutes.js";
 import availabilityRoutes from "./routes/availabilityRoutes.js";
 import doctorRoutes from "./routes/doctorRoutes.js";
 import clinicRoutes from "./routes/clinicRoutes.js";
-
+import geminiRoutes from "./routes/geminiRoutes.js";
+import appointmentApi from './routes/appointmentsNew.js';
+import patientRoutesNew from './routes/newPatientRoutes.js'
+import slotRoutes from './routes/slotRoutes.js'
+import alertRoutes from './routes/alertRoutes.js'
+import bookingRoutes from './routes/bookingRoutes.js'
 
 
 dotenv.config();
@@ -35,6 +40,14 @@ app.use("/api/outreach", outreachRoutes);
 app.use("/api/availability", availabilityRoutes);
 app.use("/api/doctors", doctorRoutes);
 app.use("/api/clinics", clinicRoutes);
+//gemini
+app.use("/api/gemini", geminiRoutes);
+app.use('/api/appointmentsNew', appointmentApi);
+app.use("/api/patientsNew", patientRoutesNew);
+app.use('/api', slotRoutes);
+app.use('/api', alertRoutes);
+app.use("/api", bookingRoutes);
+
 
 // app.use('/uploads', express.static('uploads'));
 const __filename = fileURLToPath(import.meta.url);
@@ -54,7 +67,6 @@ mongoose
     app.get("/", (req, res) => {
       res.send("Backend is running on Render 🚀");
     });
-
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
