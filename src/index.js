@@ -20,6 +20,10 @@ import patientRoutesNew from './routes/newPatientRoutes.js'
 import slotRoutes from './routes/slotRoutes.js'
 import alertRoutes from './routes/alertRoutes.js'
 import bookingRoutes from './routes/bookingRoutes.js'
+import chairRoutes from './routes/chairRoutes.js'
+import hygienistRoutes from './routes/hygienistRoutes.js'
+import transactionRoutes from './routes/transactionRoutes.js'
+import stripeRoutes from './routes/stripeRoutes.js'
 
 
 dotenv.config();
@@ -47,7 +51,10 @@ app.use("/api/patientsNew", patientRoutesNew);
 app.use('/api', slotRoutes);
 app.use('/api', alertRoutes);
 app.use("/api", bookingRoutes);
-
+app.use("/api", chairRoutes);
+app.use("/api", hygienistRoutes);
+app.use('/api/transactions', transactionRoutes);
+app.use('/api/stripe', stripeRoutes); 
 
 // app.use('/uploads', express.static('uploads'));
 const __filename = fileURLToPath(import.meta.url);
