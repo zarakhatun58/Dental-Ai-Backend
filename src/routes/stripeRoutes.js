@@ -36,34 +36,38 @@ router.post('/checkout', async (req, res) => {
 
 // Must use raw body parser for Stripe webhooks
 router.post(
-  "/webhook",
-  express.raw({ type: "application/json" }),
-  async (req, res) => {
-    const sig = req.headers["stripe-signature"];
+  '/webhook',
+  bodyParser.raw({ type: 'application/json' }),
+  (req, res) => {
+    const sig = req.headers['stripe-signature'];
+    const endpointSecret = `${process.env.STRIPE_WEBHOOK_SECRET}`;
 
     let event;
 
     try {
-      event = stripe.webhooks.constructEvent(
-        req.body,
-        sig,
-        process.env.STRIPE_WEBHOOK_SECRET
-      );
+      event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
     } catch (err) {
-      console.error("Webhook signature error:", err.message);
-      return res.status(400).send(`Webhook Error: ${err.message}`);
+      console.error('Webhook signature verification failed.', err.message);
+      return res.sendStatus(400);
     }
 
-    // Handle successful payment
-    if (event.type === "checkout.session.completed") {
-      const session = event.data.object;
-      console.log("✅ Checkout completed:", session);
+    // Handle the event
+    switch (event.type) {
+      case 'checkout.session.completed':
+        const session = event.data.object;
+        console.log('✅ Payment complete. Session:', session);
 
-      // TODO: mark transaction as paid in your MySQL DB here
+        // Update DB or perform logic here (e.g., mark transaction as completed)
+        break;
+
+      // Add more event types as needed
+      default:
+        console.log(`Unhandled event type ${event.type}`);
     }
 
-    res.status(200).send();
+    res.sendStatus(200);
   }
 );
+
 
 export default router;
