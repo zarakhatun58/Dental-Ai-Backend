@@ -21,7 +21,7 @@ export const getAlertsByDate = async (req, res) => {
       WHERE DATE(a.AptDateTime) = ?
     `, [date]);
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); // ✅ correct model name (no "models/" prefix)
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" }); // ✅ correct model name (no "models/" prefix)
 
     const alerts = [];
 

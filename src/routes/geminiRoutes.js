@@ -13,7 +13,7 @@ router.post("/ask", async (req, res) => {
 
   try {
     const response = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
       {
         contents: [
           {
@@ -54,7 +54,7 @@ router.post("/ai-suggestions", async (req, res) => {
     const prompt = `Here are upcoming dental appointments:\n${JSON.stringify(appointments, null, 2)}\n\nGive AI-powered insights: summarize, highlight anything important.`;
 
     const geminiResponse = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
         contents: [
           {

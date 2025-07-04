@@ -8,7 +8,7 @@ import patientRoutes from "./routes/patientRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import appointmentRoutes from "./routes/appointmentRoutes.js";
 import analyticsRoutes from "./routes/analyticsRoutes.js";
-import campaignRoutes from "./routes/campaignRoutes.js";
+import campRoutes from "./routes/campRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import outreachRoutes from "./routes/outreachRoutes.js";
 import availabilityRoutes from "./routes/availabilityRoutes.js";
@@ -27,6 +27,8 @@ import stripeRoutes from './routes/stripeRoutes.js'
 import successRoutes from './routes/successRoutes.js'
 import promoRoutes from './routes/promoRoutes.js'
 import notificationRoutes from './routes/notificationRoutes.js'
+import dashboardRoutes from './routes/dashboardRoutes.js'
+import recomRoutes from './routes/recomRoutes.js'
 
 
 dotenv.config();
@@ -61,7 +63,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/patients", patientRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use("/api/analytics", analyticsRoutes);
-app.use("/api/campaigns", campaignRoutes)
+// app.use("/api/campaigns", campaignRoutes)
 app.use("/api/payments", paymentRoutes);
 app.use("/api/outreach", outreachRoutes);
 app.use("/api/availability", availabilityRoutes);
@@ -81,6 +83,11 @@ app.use('/api/stripe', stripeRoutes);
 app.use('/success', successRoutes ); 
 app.use('/api', promoRoutes ); 
 app.use('/api/notification', notificationRoutes ); 
+app.use('/api/dashboard', dashboardRoutes ); 
+app.use('/api/ai', recomRoutes ); 
+app.use('/api/campaigns', campRoutes);
+
+
 
 // app.use('/uploads', express.static('uploads'));
 const __filename = fileURLToPath(import.meta.url);
@@ -103,7 +110,7 @@ mongoose
     app.post('/api/gemini', async (req, res) => {
   const prompt = req.body.prompt;
 
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
