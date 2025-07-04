@@ -12,8 +12,8 @@ const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 export const createCheckoutSession = async (req, res) => {
   try {
     const { patient, service, amount, email, phone } = req.body; // ✅ include phone
-    const successUrl = `${process.env.FRONTEND_URL}/success`;
-    const cancelUrl = `${process.env.FRONTEND_URL}/cancel`;
+    const success_url = `${process.env.FRONTEND_URL}/success`;
+    const cancel_url = `${process.env.FRONTEND_URL}/cancel`;
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -29,8 +29,8 @@ export const createCheckoutSession = async (req, res) => {
         },
       ],
       mode: 'payment',
-      success_url: successUrl,
-      cancel_url: cancelUrl,
+      success_url: success_url,
+      cancel_url: cancel_url,
       customer_email: email,
       metadata: {
         patient,
