@@ -12,7 +12,8 @@ const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 export const createCheckoutSession = async (req, res) => {
   try {
     const { patient, service, amount, email, phone } = req.body; // ✅ include phone
-
+    const successUrl = `${process.env.FRONTEND_URL}/success`;
+    const cancelUrl = `${process.env.FRONTEND_URL}/cancel`;
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -22,23 +23,22 @@ export const createCheckoutSession = async (req, res) => {
             product_data: {
               name: `${service} for ${patient}`,
             },
-            unit_amount: parseFloat(amount) * 100, // Amount in cents
+            unit_amount: parseFloat(amount) * 100,
           },
           quantity: 1,
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.FRONTEND_URL}/success`,
-      cancel_url: `${process.env.FRONTEND_URL}/cancel`,
-      
+      success_url: successUrl,
+      cancel_url: cancelUrl,
       customer_email: email,
       metadata: {
         patient,
         phone,
       },
     });
-console.log("✅ Stripe Success URL:", success_url);
-console.log("✅ Stripe Cancel URL:", cancel_url);
+    console.log("✅ Stripe Success URL:", success_url);
+    console.log("✅ Stripe Cancel URL:", cancel_url);
     const paymentLink = session.url;
 
     // ✅ Send SMS or Email to the patient
@@ -47,7 +47,7 @@ console.log("✅ Stripe Cancel URL:", cancel_url);
     // ✅ Notify admin of new checkout link created
     // await notifyAdmin({ patient, service, amount, link: paymentLink });
 
-    res.status(200).json({ url: session.url });
+    res.status(200).json({ url: paymentLink });
   } catch (err) {
     console.error('Stripe Checkout error:', err.message);
     res.status(500).json({ error: 'Something went wrong with Stripe' });
