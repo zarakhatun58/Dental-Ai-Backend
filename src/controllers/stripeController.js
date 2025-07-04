@@ -8,9 +8,10 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
 // Create a Stripe Checkout session
+
 export const createCheckoutSession = async (req, res) => {
   try {
-    const { patient, service, amount } = req.body;
+    const { patient, service, amount, email, phone } = req.body; // ✅ include phone
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -29,13 +30,13 @@ export const createCheckoutSession = async (req, res) => {
       mode: 'payment',
       success_url: `${process.env.FRONTEND_URL}/success`,
       cancel_url: `${process.env.FRONTEND_URL}/cancel`,
-        customer_email: email,
-         metadata: {
+      customer_email: email,
+      metadata: {
         patient,
         phone,
       },
     });
-  // OPTIONAL: Send Email/SMS here with the link
+
     const paymentLink = session.url;
 
     // ✅ Send SMS or Email to the patient
@@ -43,12 +44,14 @@ export const createCheckoutSession = async (req, res) => {
 
     // ✅ Notify admin of new checkout link created
     await notifyAdmin({ patient, service, amount, link: paymentLink });
+
     res.status(200).json({ url: session.url });
   } catch (err) {
     console.error('Stripe Checkout error:', err.message);
     res.status(500).json({ error: 'Something went wrong with Stripe' });
   }
 };
+
 
 // Stripe webhook handler
 export const handleWebhook = async (req, res) => {
@@ -90,20 +93,17 @@ export const handleWebhook = async (req, res) => {
   res.status(200).send({ received: true });
 };
 
-
-
-
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { patient, service, amount, phone } = req.body;
+  const { patient, service, amount, phone, email } = req.body; // ✅ include email
 
   try {
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
-       customer_email: email,
+      customer_email: email,
       mode: "payment",
       line_items: [
         {
@@ -123,12 +123,13 @@ export default async function handler(req, res) {
 
     const paymentLink = session.url;
 
-    // ✅ Send SMS using your existing function
+    // ✅ Send SMS
     if (phone) {
       const smsBody = `Hi ${patient}, please complete your payment for ${service}: ${paymentLink}`;
       await sendSMS(phone, smsBody);
     }
-// ✅ Send Email
+
+    // ✅ Send Email
     if (email) {
       const emailBody = `
         <p>Dear ${patient},</p>
@@ -145,3 +146,4 @@ export default async function handler(req, res) {
     res.status(500).json({ error: "Checkout session creation failed" });
   }
 }
+
