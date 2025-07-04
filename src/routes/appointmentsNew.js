@@ -1,30 +1,25 @@
-// routes/appointments.js
 import express from 'express';
 import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
 
 dotenv.config();
-
 const router = express.Router();
 
-const db = {
+// ✅ Create pool once
+const pool = mysql.createPool({
   host: process.env.MYSQL_HOST || 'localhost',
   user: process.env.MYSQL_USER || 'root',
   password: process.env.MYSQL_PASSWORD || '',
   database: process.env.MYSQL_DATABASE || 'opendental',
-};
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+});
 
-// GET upcoming appointments
+// ✅ Route using the pool
 router.get("/", async (req, res) => {
   try {
-    const connection = await mysql.createConnection({
-      host: process.env.MYSQL_HOST,
-      user: process.env.MYSQL_USER,
-      password: process.env.MYSQL_PASSWORD,
-      database: process.env.MYSQL_DATABASE,
-    });
-
-    const [rows] = await connection.execute(`
+    const [rows] = await pool.query(`
       SELECT 
         a.AptNum, 
         a.AptDateTime,
@@ -40,13 +35,11 @@ router.get("/", async (req, res) => {
         a.AptDateTime >= NOW()
     `);
 
-    await connection.end();
     res.json(rows);
   } catch (error) {
     console.error("Error fetching appointments with patient:", error);
     res.status(500).json({ error: "Failed to fetch appointments with patient" });
   }
 });
-
 
 export default router;
