@@ -1,20 +1,15 @@
 // routes/patientRoutes.js
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import express from "express";
-import mysql from "mysql2/promise";
+import pool from "../config/db.js";
 
 const router = express.Router();
-
-
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 router.get("/ai-insights", async (req, res) => {
   try {
-    const connection = await mysql.createConnection({
-      host: process.env.MYSQL_HOST,
-      user: process.env.MYSQL_USER,
-      password: process.env.MYSQL_PASSWORD,
-      database: process.env.MYSQL_DATABASE,
-    });
- const [rows] = await connection.execute(`
+    const [rows] = await pool.execute(`
       SELECT 
         p.PatNum AS id,
         CONCAT(p.LName, ' ', p.FName) AS name,
@@ -25,7 +20,8 @@ router.get("/ai-insights", async (req, res) => {
       LEFT JOIN appointment a ON a.PatNum = p.PatNum
       WHERE p.PatStatus = 0
       GROUP BY p.PatNum
-      ORDER BY lastVisit DESC;
+      ORDER BY lastVisit DESC
+      LIMIT 10;
     `);
 
     const patients = rows.map((p) => {
@@ -39,24 +35,32 @@ router.get("/ai-insights", async (req, res) => {
         name: p.name,
         lastVisit: lastVisitDate ? lastVisitDate.toISOString().split("T")[0] : "N/A",
         daysSince: daysSince ?? 999,
-        riskLevel: daysSince > 180 ? "high" : daysSince > 90 ? "medium" : "low",
         phone: p.phone?.trim() || "",
         email: p.email?.trim() || "",
-        noShowProbability: Math.floor(Math.random() * 100), // AI mock
-        upsellPotential: [
-          "Crown ($2,400)", "Whitening ($450)", "Veneers ($3,200)", "Sealants ($180)", "Implant ($4,500)"
-        ][Math.floor(Math.random() * 5)],
-        insuranceStatus: [
-          "Active", "Expired", "Pending", "None"
-        ][Math.floor(Math.random() * 4)]
       };
     });
 
+    // 🧠 Ask Gemini for AI analysis
+    const prompt = `
+You are an AI dental assistant. Analyze the following OpenDental patient data and suggest:
+- Their risk level based on days since last visit
+- Potential upsell services
+- Any note if they are overdue
+Data:
+${JSON.stringify(patients, null, 2)}
+    `;
 
-   res.json({ patients })
+    const result = await model.generateContent(prompt);
+    const aiResponse = await result.response.text();
+
+    res.json({
+      patients,
+      insights: aiResponse,
+    });
+
   } catch (err) {
-    console.error("Error loading patients:", err.message);
-    res.status(500).json({ error: "Failed to fetch patients." });
+    console.error("Error generating AI insights:", err.message);
+    res.status(500).json({ error: "Failed to generate AI insights." });
   }
 });
 

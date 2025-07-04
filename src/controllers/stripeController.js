@@ -1,6 +1,7 @@
 // src/controllers/stripeController.js
 import Stripe from 'stripe';
 import pool from '../config/db.js'; // If using MySQL for saving transactions
+import { sendSMS } from "../utils/sendSMS.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -26,10 +27,22 @@ export const createCheckoutSession = async (req, res) => {
         },
       ],
       mode: 'payment',
-      success_url: 'https://your-frontend.com/success',
-      cancel_url: 'https://your-frontend.com/cancel',
+      success_url: `${process.env.BASE_URL}/success`,
+      cancel_url: `${process.env.BASE_URL}/cancel`,
+        customer_email: email,
+         metadata: {
+        patient,
+        phone,
+      },
     });
+  // OPTIONAL: Send Email/SMS here with the link
+    const paymentLink = session.url;
 
+    // ✅ Send SMS or Email to the patient
+    await sendNotificationToPatient({ phone, email, paymentLink, patient, service });
+
+    // ✅ Notify admin of new checkout link created
+    await notifyAdmin({ patient, service, amount, link: paymentLink });
     res.status(200).json({ url: session.url });
   } catch (err) {
     console.error('Stripe Checkout error:', err.message);
@@ -76,3 +89,58 @@ export const handleWebhook = async (req, res) => {
 
   res.status(200).send({ received: true });
 };
+
+
+
+
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  const { patient, service, amount, phone } = req.body;
+
+  try {
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      mode: "payment",
+      line_items: [
+        {
+          price_data: {
+            currency: "usd",
+            unit_amount: Math.round(amount * 100), // amount in cents
+            product_data: {
+              name: service,
+            },
+          },
+          quantity: 1,
+        },
+      ],
+      success_url: `${process.env.BASE_URL}/success`,
+      cancel_url: `${process.env.BASE_URL}/cancel`,
+    });
+
+    const paymentLink = session.url;
+
+    // ✅ Send SMS using your existing function
+    if (phone) {
+      const smsBody = `Hi ${patient}, please complete your payment for ${service}: ${paymentLink}`;
+      await sendSMS(phone, smsBody);
+    }
+// ✅ Send Email
+    if (email) {
+      const emailBody = `
+        <p>Dear ${patient},</p>
+        <p>Please complete your payment for <strong>${service}</strong> by clicking the link below:</p>
+        <a href="${paymentLink}">Complete Payment</a>
+        <p>Thank you!</p>
+      `;
+      await sendEmail(email, `Payment Request for ${service}`, emailBody);
+    }
+
+    res.status(200).json({ url: paymentLink });
+  } catch (err) {
+    console.error("❌ Stripe or SMS Error:", err.message);
+    res.status(500).json({ error: "Checkout session creation failed" });
+  }
+}
