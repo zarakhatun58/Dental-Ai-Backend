@@ -16,11 +16,6 @@ export const handleSuccessPage = async (req, res) => {
     const email = session.metadata?.email;
     const phone = session.metadata?.phone;
 
-    // Optional: update DB to mark as paid
-    await pool.query(
-      "UPDATE appointment SET Paid = 1 WHERE AptNum = ?",
-      [bookingId]
-    );
 
     // Return simple HTML or JSON response
     res.send(`
