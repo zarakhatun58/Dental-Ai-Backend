@@ -37,8 +37,8 @@ export const createCheckoutSession = async (req, res) => {
         phone,
       },
     });
-console.log("✅ Stripe Success URL:", successUrl);
-console.log("✅ Stripe Cancel URL:", cancelUrl);
+console.log("✅ Stripe Success URL:", success_url);
+console.log("✅ Stripe Cancel URL:", cancel_url);
     const paymentLink = session.url;
 
     // ✅ Send SMS or Email to the patient
