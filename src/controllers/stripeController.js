@@ -40,10 +40,10 @@ export const createCheckoutSession = async (req, res) => {
     const paymentLink = session.url;
 
     // ✅ Send SMS or Email to the patient
-    await sendNotificationToPatient({ phone, email, paymentLink, patient, service });
+    // await sendNotificationToPatient({ phone, email, paymentLink, patient, service });
 
     // ✅ Notify admin of new checkout link created
-    await notifyAdmin({ patient, service, amount, link: paymentLink });
+    // await notifyAdmin({ patient, service, amount, link: paymentLink });
 
     res.status(200).json({ url: session.url });
   } catch (err) {
