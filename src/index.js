@@ -25,17 +25,33 @@ import hygienistRoutes from './routes/hygienistRoutes.js'
 import transactionRoutes from './routes/transactionRoutes.js'
 import stripeRoutes from './routes/stripeRoutes.js'
 import successRoutes from './routes/successRoutes.js'
+import promoRoutes from './routes/promoRoutes.js'
+import notificationRoutes from './routes/notificationRoutes.js'
 
 
 dotenv.config();
 
 const app = express();
 
+const allowedOrigins = [
+  'http://localhost:8080', // local frontend
+  'https://dental-flow-ai-agent.lovable.app', // deployed frontend
+];
+
 const corsOptions = {
-  origin: 'https://dental-flow-ai-agent.lovable.app',
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('❌ CORS blocked: Not allowed by server'));
+    }
+  },
   methods: ['GET', 'POST', 'OPTIONS'],
   credentials: true,
 };
+
+app.use(cors(corsOptions));
+
 app.use(cors(corsOptions));
 // app.use(cors());
 app.use(express.json());
@@ -63,6 +79,8 @@ app.use("/api", hygienistRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/stripe', stripeRoutes); 
 app.use('/success', successRoutes ); 
+app.use('/api', promoRoutes ); 
+app.use('/api/notification', notificationRoutes ); 
 
 // app.use('/uploads', express.static('uploads'));
 const __filename = fileURLToPath(import.meta.url);
@@ -82,6 +100,20 @@ mongoose
     app.get("/", (req, res) => {
       res.send("Backend is running on Render 🚀");
     });
+    app.post('/api/gemini', async (req, res) => {
+  const prompt = req.body.prompt;
+
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }]
+    })
+  });
+
+  const data = await response.json();
+  res.json(data);
+});
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
       console.log("✅ FRONTEND_URL:", `${process.env.FRONTEND_URL}`);

@@ -50,7 +50,10 @@ export const createCheckoutSession = async (req, res) => {
 
     // ✅ Notify admin of new checkout link created
     // await notifyAdmin({ patient, service, amount, link: paymentLink });
-
+await pool.query(
+  'INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)',
+  [userId, 'Payment Received', 'Your payment of $99 was successful.', 'payment']
+);
     res.status(200).json({ url: paymentLink });
   } catch (err) {
     console.error('Stripe Checkout error:', err.message);

@@ -1,6 +1,7 @@
 import User from "../models/user.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import pool from "../config/db.js";
 
 export const register = async (req, res) => {
   try {
@@ -13,6 +14,10 @@ export const register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new User({ name, email, password: hashedPassword });
     await newUser.save();
+await pool.query(
+      'INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)',
+      [newUser._id.toString(), 'User Registered', `${name} signed up`, 'system']
+    );
 
     res.status(201).json({ message: "Registration successful" });
   } catch (err) {

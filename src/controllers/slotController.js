@@ -111,6 +111,10 @@ export const bookSlot = async (req, res) => {
 
     // For real app: insert into `appointment` table using OpenDental schema
     // Here just mock response
+    await pool.query(
+  'INSERT INTO notifications (patientId, title, message, type) VALUES (?, ?, ?, ?)',
+  [userId, 'Payment Received', 'Your payment of $79 was successful.', 'payment']
+);
     res.json({
       message: "Slot booked successfully",
       slot: {
