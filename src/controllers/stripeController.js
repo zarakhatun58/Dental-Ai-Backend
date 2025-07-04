@@ -12,8 +12,8 @@ const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 export const createCheckoutSession = async (req, res) => {
   try {
     const { patient, service, amount, email, phone } = req.body; // ✅ include phone
-    const success_url = `${process.env.FRONTEND_URL}/success`;
-    const cancel_url = `${process.env.FRONTEND_URL}/cancel`;
+      const successUrl = `${process.env.FRONTEND_URL}/success`;
+    const cancelUrl = `${process.env.FRONTEND_URL}/cancel`;
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -29,16 +29,16 @@ export const createCheckoutSession = async (req, res) => {
         },
       ],
       mode: 'payment',
-      success_url: success_url,
-      cancel_url: cancel_url,
+       success_url: successUrl,
+      cancel_url: cancelUrl,
       customer_email: email,
       metadata: {
         patient,
         phone,
       },
     });
-    console.log("✅ Stripe Success URL:", success_url);
-    console.log("✅ Stripe Cancel URL:", cancel_url);
+      console.log("✅ Stripe Success URL:", successUrl);
+    console.log("✅ Stripe Cancel URL:", cancelUrl);
     const paymentLink = session.url;
 
     // ✅ Send SMS or Email to the patient
