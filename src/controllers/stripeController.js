@@ -30,13 +30,15 @@ export const createCheckoutSession = async (req, res) => {
       mode: 'payment',
       success_url: `${process.env.FRONTEND_URL}/success`,
       cancel_url: `${process.env.FRONTEND_URL}/cancel`,
+      
       customer_email: email,
       metadata: {
         patient,
         phone,
       },
     });
-
+console.log("✅ Stripe Success URL:", successUrl);
+console.log("✅ Stripe Cancel URL:", cancelUrl);
     const paymentLink = session.url;
 
     // ✅ Send SMS or Email to the patient
