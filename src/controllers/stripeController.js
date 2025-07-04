@@ -12,7 +12,7 @@ const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 export const createCheckoutSession = async (req, res) => {
   try {
     const { patient, service, amount, email, phone } = req.body; // ✅ include phone
-      const successUrl = `${process.env.FRONTEND_URL}/success`;
+    const successUrl = `${process.env.FRONTEND_URL}/success`;
     const cancelUrl = `${process.env.FRONTEND_URL}/cancel`;
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -29,15 +29,17 @@ export const createCheckoutSession = async (req, res) => {
         },
       ],
       mode: 'payment',
-       success_url: successUrl,
+      success_url: successUrl,
       cancel_url: cancelUrl,
       customer_email: email,
       metadata: {
         patient,
         phone,
+        bookingId: req.body.bookingId,
+        email: req.body.email
       },
     });
-      console.log("✅ Stripe Success URL:", successUrl);
+    console.log("✅ Stripe Success URL:", successUrl);
     console.log("✅ Stripe Cancel URL:", cancelUrl);
     const paymentLink = session.url;
 
@@ -149,3 +151,36 @@ export default async function handler(req, res) {
   }
 }
 
+export const handleSuccessPage = async (req, res) => {
+  const { session_id } = req.query;
+
+  if (!session_id) {
+    return res.status(400).send("Missing session_id.");
+  }
+
+  try {
+    const session = await stripe.checkout.sessions.retrieve(session_id);
+    const bookingId = session.metadata?.bookingId;
+    const patient = session.metadata?.patient;
+    const email = session.metadata?.email;
+    const phone = session.metadata?.phone;
+
+    // Optional: update DB to mark as paid
+    await pool.query(
+      "UPDATE appointment SET Paid = 1 WHERE AptNum = ?",
+      [bookingId]
+    );
+
+    // Return simple HTML or JSON response
+    res.send(`
+      <h2>✅ Thank you for your payment!</h2>
+      <p><strong>Booking ID:</strong> ${bookingId}</p>
+      <p><strong>Patient:</strong> ${patient}</p>
+      <p><strong>Email:</strong> ${email}</p>
+      <p><strong>Phone:</strong> ${phone}</p>
+    `);
+  } catch (err) {
+    console.error("Stripe success handler error:", err.message);
+    res.status(500).send("Something went wrong. Please contact support.");
+  }
+};

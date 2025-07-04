@@ -24,17 +24,19 @@ import chairRoutes from './routes/chairRoutes.js'
 import hygienistRoutes from './routes/hygienistRoutes.js'
 import transactionRoutes from './routes/transactionRoutes.js'
 import stripeRoutes from './routes/stripeRoutes.js'
+import successRoutes from './routes/successRoutes.js'
 
 
 dotenv.config();
 
 const app = express();
 
-app.use(cors({
-  origin: "https://dental-flow-ai-agent.lovable.app",
-  methods: ["GET", "POST", "OPTIONS"],
-  credentials: true
-}));
+const corsOptions = {
+  origin: 'https://dental-flow-ai-agent.lovable.app',
+  methods: ['GET', 'POST', 'OPTIONS'],
+  credentials: true,
+};
+app.use(cors(corsOptions));
 // app.use(cors());
 app.use(express.json());
 
@@ -60,6 +62,7 @@ app.use("/api", chairRoutes);
 app.use("/api", hygienistRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/stripe', stripeRoutes); 
+app.use('/success', successRoutes ); 
 
 // app.use('/uploads', express.static('uploads'));
 const __filename = fileURLToPath(import.meta.url);

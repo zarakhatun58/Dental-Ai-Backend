@@ -63,7 +63,7 @@ Respond with:
 
     res.json({
       message: "Appointment booked successfully",
-      appointmentId: aptResult.insertId,
+      bookingId: aptResult.insertId,
       upsellSuggestion: upsell
     });
   } catch (err) {
