@@ -30,10 +30,12 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors({
-  origin: ["https://dental-flow-ai-agent.lovable.app/"],
-  methods: ["POST"],
-}));
+// app.use(cors({
+//   origin: ["https://dental-flow-ai-agent.lovable.app/"],
+//   methods: ["GET", "POST", "OPTIONS"],
+//   credentials: true,
+// }));
+app.use(cors());
 app.use(express.json());
 
 // ✅ Mount routes first
