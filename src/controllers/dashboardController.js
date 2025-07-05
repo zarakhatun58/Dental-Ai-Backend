@@ -44,7 +44,7 @@ export const getDashboardData = async (req, res) => {
     }
 
     // Use Gemini to generate insight
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const prompt = `Analyze the following dental clinic metrics and give actionable suggestions:\n\n${JSON.stringify(metrics)}`;
     const result = await model.generateContent(prompt);
