@@ -1,6 +1,7 @@
 import express from 'express';
 import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
+import { sendNotification } from '../utils/sendNotification.js';
 
 dotenv.config();
 const router = express.Router();
@@ -36,6 +37,12 @@ router.get("/", async (req, res) => {
     `);
 
     res.json(rows);
+    await sendNotification({
+        user_id: req.userId,
+      title: "Appointment Booked",
+      type: "appointmentsNew",
+      context: `Appointment booked with ${patientName} on ${appointmentDate}.`
+    });
   } catch (error) {
     console.error("Error fetching appointments with patient:", error);
     res.status(500).json({ error: "Failed to fetch appointments with patient" });

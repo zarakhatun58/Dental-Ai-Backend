@@ -1,6 +1,7 @@
 import express from "express";
 import { askGemini } from "../utils/gemini.js"; // optional Gemini integration
 import pool from "../config/db.js";
+import { sendNotification } from "../utils/sendNotification.js";
 
 const router = express.Router();
 
@@ -66,6 +67,12 @@ Respond with:
       bookingId: aptResult.insertId,
       upsellSuggestion: upsell
     });
+     await sendNotification({
+          user_id: req.userId,
+          title: "Booking Available",
+          type: "ai-insights",
+          context: `Booking are available for your practice.`
+        });
   } catch (err) {
     console.error("Booking failed:", err.message);
     res.status(500).json({ error: "Booking failed", details: err.message });

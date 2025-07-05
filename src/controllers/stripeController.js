@@ -2,6 +2,7 @@
 import Stripe from 'stripe';
 import pool from '../config/db.js'; // If using MySQL for saving transactions
 import { sendSMS } from "../utils/sendSMS.js";
+import { sendNotification } from '../utils/sendNotification.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -11,11 +12,12 @@ const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
 export const createCheckoutSession = async (req, res) => {
   try {
+       const userId = req.userId || "default-admin";
     const { patient, service, amount, email, phone, bookingId } = req.body; // ✅ include phone
     const successUrl = `${process.env.FRONTEND_URL}/success`;
     const cancelUrl = `${process.env.FRONTEND_URL}/cancel`;
 
-  const session = await stripe.checkout.sessions.create({
+    const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
         {
@@ -50,11 +52,18 @@ export const createCheckoutSession = async (req, res) => {
 
     // ✅ Notify admin of new checkout link created
     // await notifyAdmin({ patient, service, amount, link: paymentLink });
-await pool.query(
-  'INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)',
-  [userId, 'Payment Received', 'Your payment of $99 was successful.', 'payment']
-);
+    await pool.query(
+      'INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)',
+      [userId, 'Payment Received', 'Your payment of $99 was successful.', 'payment']
+    );
     res.status(200).json({ url: paymentLink });
+    await sendNotification({
+      user_id: req.userId,
+      title: "Invoice Sent",
+      type: "payment",
+      context: `An invoice has been sent to ${recipient} for $${total}.`
+    });
+
   } catch (err) {
     console.error('Stripe Checkout error:', err.message);
     res.status(500).json({ error: 'Something went wrong with Stripe' });

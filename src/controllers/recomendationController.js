@@ -1,9 +1,10 @@
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import pool from "../config/db.js";
+import { sendNotification } from "../utils/sendNotification.js";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-export const getDashboardData = async (req, res) => {
+export const getMatricsData = async (req, res) => {
   try {
     const [summary] = await pool.execute(`
       SELECT 
@@ -17,12 +18,18 @@ export const getDashboardData = async (req, res) => {
       LEFT JOIN procedurecode pc ON pl.CodeNum = pc.CodeNum;
     `);
 
-     const [activity] = await pool.execute(`
+    const [activity] = await pool.execute(`
       SELECT * FROM recent_activity ORDER BY created_at DESC LIMIT 5;
     `);
- console.log("📊 Dashboard Summary:", summary[0]);
-  console.log("🧾 Recent Activity:", activity);
+    console.log("📊 Dashboard Summary:", summary[0]);
+    console.log("🧾 Recent Activity:", activity);
     res.json({ metrics: summary[0], activity });
+    await sendNotification({
+     user_id: req.userId,
+      title: "Metrics Updated",
+      type: "metrics",
+      context: `Your latest performance metrics have been updated on the dashboard.`
+    });
   } catch (err) {
     console.error("❌ Dashboard Error:", err);
     res.status(500).json({ error: "Failed to fetch dashboard data." });
@@ -148,10 +155,8 @@ export const getAIRecommendations = async (req, res) => {
       - Friday underbooking trend: 2-5PM
     `;
 
-    console.log("📊 Using patient stats:", patientStats);
-
     const prompt = `
-      Based on the stats below, generate 5 smart AI recommendations as structured JSON objects...
+      Based on the stats below, generate 5 smart AI recommendations as structured JSON objects.
       Stats: ${patientStats}
     `;
 
@@ -159,20 +164,29 @@ export const getAIRecommendations = async (req, res) => {
     const result = await model.generateContent(prompt);
     const text = result.response.text();
 
-    console.log("🧠 Gemini Response:", text);
-
-    let recommendations = [];
+    let recommendations;
     try {
       recommendations = JSON.parse(text);
-    } catch (e) {
-      console.warn("⚠️ Failed to parse Gemini response. Using fallback.");
+    } catch {
       recommendations = fallbackRecommendations;
     }
 
-    console.log("✅ Final Recommendations Sent:", recommendations);
-    res.json({ activity: recommendations }); // ← changed here
+    res.status(200).json({
+      recommendations,
+      fallbackUsed: recommendations === fallbackRecommendations
+    });
+    await sendNotification({
+      user_id: req.userId,
+      title: "New Recommendation",
+      type: "recommendation",
+      context: `A new recommendation is available based on recent data trends.`
+    });
+
   } catch (err) {
     console.error("❌ AI Insight Error:", err);
-    res.json({ activity: fallbackRecommendations }); // ← changed here
+    res.status(200).json({
+      recommendations: fallbackRecommendations,
+      fallbackUsed: true
+    });
   }
 };

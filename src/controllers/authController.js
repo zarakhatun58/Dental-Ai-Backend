@@ -2,6 +2,7 @@ import User from "../models/user.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import pool from "../config/db.js";
+import { sendNotification } from "../utils/sendNotification.js";
 
 export const register = async (req, res) => {
   try {
@@ -14,12 +15,26 @@ export const register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new User({ name, email, password: hashedPassword });
     await newUser.save();
-await pool.query(
+    await pool.query(
       'INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)',
       [newUser._id.toString(), 'User Registered', `${name} signed up`, 'system']
     );
 
     res.status(201).json({ message: "Registration successful" });
+      // Trigger system & Gemini-generated welcome notifications
+    await sendNotification({
+      user_id: newUser._id.toString(),
+      title: "User Registered",
+      message: `${name} signed up`,
+      type: "system"
+    });
+
+    await sendNotification({
+      user_id: newUser._id.toString(),
+      title: "Welcome to SmilePro!",
+      type: "account",
+      context: `New user registered with email: ${newUser.email}`
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -44,6 +59,13 @@ export const login = async (req, res) => {
     res.json({
       token,
       user: { id: user._id, name: user.name, email: user.email },
+    });
+    // Notify login event via Gemini
+    await sendNotification({
+      user_id: user._id.toString(),
+      title: "Login Successful",
+      type: "login",
+      context: `User logged in from IP ${req.ip} at ${new Date().toLocaleString()}`
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

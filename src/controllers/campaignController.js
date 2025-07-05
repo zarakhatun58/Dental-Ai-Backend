@@ -1,6 +1,7 @@
 // controllers/campaignController.js
 
 import pool from "../config/db.js";
+import { sendNotification } from "../utils/sendNotification.js";
 
 
 // GET all campaigns
@@ -25,6 +26,14 @@ export const createCampaign = async (req, res) => {
     );
 
     const [newCampaign] = await pool.query('SELECT * FROM campaigns WHERE id = ?', [result.insertId]);
+
+    await sendNotification({
+    user_id: req.userId,
+      title: "Campaign Launched",
+      type: "campaign",
+      context: `Campaign "${name}" targeting "${targeting}" has been launched with a ${discount} offer.`
+    });
+
     res.status(201).json(newCampaign[0]);
   } catch (err) {
     res.status(500).json({ error: 'Failed to create campaign', details: err.message });

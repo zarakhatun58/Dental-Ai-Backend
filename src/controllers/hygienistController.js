@@ -1,4 +1,5 @@
 import pool from "../config/db.js";
+import { sendNotification } from "../utils/sendNotification.js";
 
 export const getHygienists = async (req, res) => {
     try {
@@ -8,12 +9,20 @@ export const getHygienists = async (req, res) => {
       WHERE IsHidden = 0
     `);
 
+        
         res.status(200).json(
             hygienists.map(hygienist => ({
                 id: hygienist.id,
                 label: hygienist.name
             }))
         );
+        await sendNotification({
+         user_id: req.userId,
+            title: "Hygienist Availability Updated",
+            type: "hygienists",
+            context: `New availability has been added for hygienist ${hygienistName}.`
+        });
+
     } catch (err) {
         console.error("Error fetching hygienists:", err.message);
         res.status(500).json({ error: "Failed to fetch hygienists" });

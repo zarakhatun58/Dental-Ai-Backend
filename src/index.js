@@ -29,6 +29,7 @@ import promoRoutes from './routes/promoRoutes.js'
 import notificationRoutes from './routes/notificationRoutes.js'
 import dashboardRoutes from './routes/dashboardRoutes.js'
 import recomRoutes from './routes/recomRoutes.js'
+import authMiddleware from "./middleware/authMiddleware.js";
 
 
 dotenv.config();
@@ -79,7 +80,7 @@ app.use("/api", bookingRoutes);
 app.use("/api", chairRoutes);
 app.use("/api", hygienistRoutes);
 app.use('/api/transactions', transactionRoutes);
-app.use('/api/stripe', stripeRoutes); 
+app.use('/api/stripe',stripeRoutes); 
 app.use('/success', successRoutes ); 
 app.use('/api', promoRoutes ); 
 app.use('/api/notification', notificationRoutes ); 

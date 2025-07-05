@@ -1,4 +1,5 @@
 import pool from "../config/db.js";
+import { sendNotification } from "../utils/sendNotification.js";
 
 
 // Create a new transaction
@@ -20,6 +21,13 @@ export const createTransaction = async (req, res) => {
       message: 'Transaction created successfully',
       transactionId: result.insertId,
     });
+    await sendNotification({
+       user_id: req.userId,
+      title: "Payment Received",
+      type: "transactions",
+      context: `A new payment of $${amount} was received from ${payerName}.`
+    });
+
   } catch (error) {
     console.error('Error creating transaction:', error);
     res.status(500).json({ error: 'Internal server error' });
