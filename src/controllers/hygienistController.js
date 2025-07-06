@@ -3,6 +3,7 @@ import { sendNotification } from "../utils/sendNotification.js";
 
 export const getHygienists = async (req, res) => {
     try {
+         const userId = req.params.userId;
         const [hygienists] = await pool.query(`
       SELECT ProvNum AS id, CONCAT(FName, ' ', LName) AS name
       FROM provider
@@ -20,7 +21,7 @@ export const getHygienists = async (req, res) => {
          user_id: req.userId,
             title: "Hygienist Availability Updated",
             type: "hygienists",
-            context: `New availability has been added for hygienist ${hygienistName}.`
+            context: `New availability has been added for hygienist .`
         });
 
     } catch (err) {

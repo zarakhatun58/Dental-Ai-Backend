@@ -18,12 +18,6 @@ export const getDashboardData = async (req, res) => {
       return res.status(404).json({ message: "No dashboard data found." });
     }
 
-    // Generate Gemini insight
-    // const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-    // const prompt = `Analyze the following dental clinic metrics and give actionable suggestions:\n\n${JSON.stringify(metrics[0])}`;
-    // const result = await model.generateContent(prompt);
-    // const geminiInsight = result.response.text();
-
     // Static dashboard additions
     const recentActivity = [
       {
@@ -93,19 +87,19 @@ export const getDashboardData = async (req, res) => {
         ]
       });
     }
-    let geminiInsight = "No AI insights available";
-    try {
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-      const prompt = `Analyze the following dental metrics:\n${JSON.stringify(metrics[0])}`;
-      const result = await model.generateContent(prompt);
-      geminiInsight = result.response.text();
-    } catch (e) {
-      console.warn("⚠️ Gemini failed, skipping insight:", e.message);
-    }
+    // let geminiInsight = "No AI insights available";
+    // try {
+    //   const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    //   const prompt = `Analyze the following dental metrics:\n${JSON.stringify(metrics[0])}`;
+    //   const result = await model.generateContent(prompt);
+    //   geminiInsight = result.response.text();
+    // } catch (e) {
+    //   console.warn("⚠️ Gemini failed, skipping insight:", e.message);
+    // }
     // Merge DB metrics with AI insight and activity
     const dashboardData = {
       ...metrics[0],
-      geminiInsight,
+      // geminiInsight,
       recentActivity,
     };
 

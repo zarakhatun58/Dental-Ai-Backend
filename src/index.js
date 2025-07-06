@@ -38,7 +38,7 @@ const app = express();
 
 const allowedOrigins = [
   'http://localhost:8080', // local frontend
-  'https://dental-flow-ai-agent.lovable.app', // deployed frontend
+  'https://dental-flow-ai-agent.onrender.com', // deployed frontend
 ];
 
 const corsOptions = {

@@ -39,14 +39,20 @@ export const sendNotification = async ({ user_id, title, message, type, context 
       return;
     }
 
-    // Use message or fallback to context (optional)
+    if (!title || !type) {
+      console.warn("sendNotification skipped: title or type missing");
+      return;
+    }
+
     const finalMessage = message || context || "";
 
     await pool.query(
       'INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)',
       [user_id, title, finalMessage, type]
     );
+
+    console.log(`✅ Notification sent to user ${user_id}: ${title}`);
   } catch (err) {
-    console.error("Notification error:", err);
+    console.error("❌ Notification error:", err);
   }
 };

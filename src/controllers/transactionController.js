@@ -5,6 +5,7 @@ import { sendNotification } from "../utils/sendNotification.js";
 // Create a new transaction
 export const createTransaction = async (req, res) => {
   try {
+    const userId = req.userId || "admin";
     const { patient, service, amount, method, status } = req.body;
 
     if (!patient || !service || !amount || !method || !status) {
@@ -25,7 +26,7 @@ export const createTransaction = async (req, res) => {
        user_id: req.userId,
       title: "Payment Received",
       type: "transactions",
-      context: `A new payment of $${amount} was received from ${payerName}.`
+      context: `A new payment of ${amount} was received from ${payerName}.`
     });
 
   } catch (error) {
