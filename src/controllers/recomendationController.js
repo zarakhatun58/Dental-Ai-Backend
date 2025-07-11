@@ -24,7 +24,7 @@ export const getMatricsData = async (req, res) => {
     console.log("📊 Recomendation Summary:", summary[0]);
     console.log("🧾 Recent Activity:", activity);
     res.json({ metrics: summary[0], activity });
-    await sendNotification({
+    await sendAndStoreNotification({
      userId: req.userId,
       title: "Metrics Updated",
       type: "metrics",

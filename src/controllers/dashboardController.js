@@ -12,10 +12,14 @@ export const getDashboardData = async (req, res) => {
       return res.status(400).json({ error: "Missing userId in request." });
     }
 
+    // const [metrics] = await pool.query(
+    //   "SELECT * FROM dashboard_metrics WHERE user_id = ?",
+    //   [userId]
+    // );
     const [metrics] = await pool.query(
-      "SELECT * FROM dashboard_metrics WHERE user_id = ?",
-      [userId]
-    );
+  "SELECT * FROM dashboard_metrics WHERE user_id = ? ORDER BY id DESC LIMIT 1",
+  [userId]
+);
 
     const recentActivity = [
       {
@@ -78,7 +82,7 @@ export const getDashboardData = async (req, res) => {
     // }).catch(err => console.warn("Notification error:", err.message));
 
   } catch (error) {
-    console.error("Dashboard Error:", error.message);
+  console.error("Dashboard Error:", error); 
     res.status(500).json({ error: "Failed to fetch dashboard data" });
   }
 };
