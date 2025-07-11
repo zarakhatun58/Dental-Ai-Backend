@@ -1,145 +1,70 @@
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import bcrypt from 'bcrypt';
 import pool from "../config/db.js";
-import { sendNotification } from "../utils/sendNotification.js";
+import { sendAndStoreNotification } from "../utils/sendNotification.js";
+import jwt from "jsonwebtoken";
 
-// 🚀 Register
-// ✅ No bcrypt used
-export const register = async (req, res) => {
+const createToken = (userId) => {
+  return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '7d' });
+};
+
+export const registerUser = async (req, res) => {
+  const { name, email, password } = req.body;
+
   try {
-    const { name, email, password } = req.body;
-    if (!name || !email || !password) {
-      return res.status(400).json({ message: "All fields required." });
-    }
-
-    const [existing] = await pool.query("SELECT * FROM users WHERE email = ?", [email]);
-    if (existing.length > 0) {
-      return res.status(400).json({ message: "User already exists" });
-    }
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const [result] = await pool.query(
-      "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
-      [name, email, password]
+      `INSERT INTO users (name, email, password) VALUES (?, ?, ?)`,
+      [name, email, hashedPassword]
     );
 
-    const userId = result.insertId.toString();
+    const userId = result.insertId;
 
-    // ✅ Send success response first so frontend can store user + connect socket
-    res.status(201).json({
-      message: "Registration successful",
+    await sendAndStoreNotification({
       userId,
-      user: {
-        id: userId,
-        name,
-        email,
-      },
+      title: "Welcome to SmilePro! 🎉",
+      message: "Your account has been created successfully.",
+      type: "account",
     });
 
-    // ⏳ Delay notification to allow frontend time to connect socket
-   setTimeout(async () => {
-  await sendNotification({
-    userId,
-    title: "User Registered",
-    message: `${name} signed up`,
-    type: "system",
-  });
-
-  await sendNotification({
-    userId,
-    title: "Welcome to SmilePro!",
-    type: "account",
-    context: `New user registered: ${email}`,
-  });
-
-  console.log(`📢 Notifications emitted to user ${userId} after registration`);
-}, 2000); 
-  } catch (err) {
-    console.error("Registration error:", err.message);
-    res.status(500).json({ error: "Registration failed" });
+    // ✅ FIXED: Return as { user, token }
+    res.status(201).json({
+      user: { id: userId, name, email },
+      token: createToken(userId),
+    });
+  } catch (error) {
+    console.error("Error during registration:", error);
+    res.status(500).json({ message: "Server error during registration" });
   }
 };
 
-export const login = async (req, res) => {
+
+export const loginUser = async (req, res) => {
+  const { email, password } = req.body;
+
   try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({ message: "Email and password required" });
-    }
+    const [rows] = await pool.query(`SELECT * FROM users WHERE email = ?`, [email]);
+    const user = rows[0];
 
-    const [rows] = await pool.query(
-      "SELECT * FROM users WHERE email = ? AND password = ?",
-      [email, password]
-    );
-
-    if (rows.length === 0) {
+    if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    const user = rows[0];
-    const userId = user.id.toString();
-
-    // ✅ Send response first so frontend can store & connect socket
-    res.json({
-      message: "Login successful",
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-      },
+    await sendAndStoreNotification({
+      userId: user.id,
+      title: "Login Successful ✅",
+      message: "You just logged into your account.",
+      type: "login",
     });
 
-    // ⏳ Delay notification until socket joins
-    setTimeout(() => {
-      sendNotification({
-        userId,
-        title: "Login Successful",
-        message: `User ${user.name} logged in.`,
-        type: "login",
-      });
-    }, 1000); // 1 second delay
-  } catch (err) {
-    console.error("Login error:", err.message);
-    res.status(500).json({ error: "Login failed" });
+    res.json({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      token: createToken(user.id),
+    });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({ message: "Server error during login" });
   }
-};
-
-
-
-
-
-
-
-// 👤 Get Profile
-export const getProfile = async (req, res) => {
-  const token = req.cookies.token;
-  if (!token) return res.status(401).json({ message: "No token provided" });
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    const [users] = await pool.query(
-      "SELECT id, name, email, role FROM users WHERE id = ?",
-      [decoded.id]
-    );
-
-    const user = users[0];
-
-    if (!user) return res.status(404).json({ message: "User not found" });
-
-    res.json(user);
-  } catch (err) {
-    console.error("Profile error:", err.message);
-    res.status(401).json({ message: "Invalid token" });
-  }
-};
-
-// 🚪 Logout
-export const logout = (req, res) => {
-  res.clearCookie("token", {
-    httpOnly: true,
-    sameSite: "Lax",
-    secure: process.env.NODE_ENV === "production",
-  });
-
-  res.json({ message: "Logged out successfully" });
 };

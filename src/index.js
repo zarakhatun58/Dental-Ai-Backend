@@ -33,14 +33,14 @@ import notificationRoutes from './routes/notificationRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import recomRoutes from './routes/recomRoutes.js';
 import cookieParser from 'cookie-parser';
-import { initSocketIO } from "./config/socket.js";
+import { initSocket } from "./config/socket.js";
 
 
 dotenv.config();
 const app = express();
 const server = http.createServer(app);
 
-initSocketIO(server);
+initSocket(server);
 
 
 // ✅ CORS setup
@@ -111,40 +111,26 @@ app.use("/api/doctors", doctorRoutes);
 app.use("/api/clinics", clinicRoutes);
 app.use("/api/gemini", geminiRoutes);
 app.use("/api/promo", promoRoutes);
-app.use("/api/notification", notificationRoutes);
+app.use('/api/notification', notificationRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 
 // ✅ Protected routes (require token)
-app.use("/api/appointmentsNew", authMiddleware, appointmentApi);
-app.use("/api/patientsNew", authMiddleware, patientRoutesNew);
-app.use("/api/slots", authMiddleware, slotRoutes);
-app.use("/api/alerts", authMiddleware, alertRoutes);
-app.use("/api/bookings", authMiddleware, bookingRoutes);
-app.use("/api/chairs", authMiddleware, chairRoutes);
-app.use("/api/hygienists", authMiddleware, hygienistRoutes);
-app.use("/api/transactions", authMiddleware, transactionRoutes);
-app.use("/api/stripe", authMiddleware, stripeRoutes);
-app.use("/api/ai", authMiddleware, recomRoutes);
-app.use("/api/campaigns", authMiddleware, campRoutes);
+app.use("/api/appointmentsNew", appointmentApi);
+app.use("/api/patientsNew", patientRoutesNew);
+app.use("/api",  slotRoutes);
+app.use("/api", alertRoutes);
+app.use("/api", bookingRoutes);
+app.use("/api",  chairRoutes);
+app.use("/api",  hygienistRoutes);
+app.use("/api/transactions", transactionRoutes);
+app.use("/api/stripe",  stripeRoutes);
+app.use("/api/ai", recomRoutes);
+app.use("/api/campaigns", campRoutes);
 
 // ✅ Start server
 const PORT = process.env.PORT || 5000;
 
-app.post("/api/notify-now", async (req, res) => {
-  try {
-    const { userId, title, message, type } = req.body;
-    if (!userId || !title || !message) {
-      return res.status(400).json({ message: "Missing fields" });
-    }
 
-    await sendNotification({ userId, title, message, type });
-
-    res.status(200).json({ message: "Notification sent" });
-  } catch (err) {
-    console.error("Failed to emit notification", err);
-    res.status(500).json({ message: "Notification failed" });
-  }
-});
 server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log("✅ Mode: MySQL + Gemini API + socket (MongoDB/Mongoose not used)");

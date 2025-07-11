@@ -2,6 +2,7 @@
 import pool from '../config/db.js';
 import { format } from 'date-fns';
 import genAI from '../lib/geminiClient.js';
+import { sendAndStoreNotification } from '../utils/sendNotification.js';
 
 const TIME_SLOTS = [
   "08:00:00", "08:30:00", "09:00:00", "09:30:00",
@@ -114,7 +115,7 @@ export const bookSlot = async (req, res) => {
     // TODO: Insert booking into OpenDental DB here (mock for now)
 
     // ✅ Send notification
-    await sendNotification({
+    await sendAndStoreNotification({
     userId: req.userId,
       title: 'Appointment Booked',
       message: `You booked a slot on ${date} at ${time} in chair ${chair}.`,

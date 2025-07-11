@@ -1,5 +1,5 @@
 import pool from "../config/db.js";
-import { sendNotification } from "../utils/sendNotification.js";
+import { sendAndStoreNotification } from "../utils/sendNotification.js";
 
 
 // Create a new transaction
@@ -22,7 +22,7 @@ export const createTransaction = async (req, res) => {
       message: 'Transaction created successfully',
       transactionId: result.insertId,
     });
-    await sendNotification({
+    await sendAndStoreNotification({
       userId: req.userId,
       title: "Payment Received",
       type: "transactions",

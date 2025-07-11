@@ -1,5 +1,5 @@
 import pool from "../config/db.js";
-import { sendNotification } from "../utils/sendNotification.js";
+import { sendAndStoreNotification } from "../utils/sendNotification.js";
 
 export const getChairs = async (req, res) => {
   try {
@@ -15,7 +15,7 @@ export const getChairs = async (req, res) => {
         name: chair.name
       }))
     );
-    await sendNotification({
+    await sendAndStoreNotification({
      userId: req.userId,
       title: "Empty Chairs Alert",
       type: "chairs",

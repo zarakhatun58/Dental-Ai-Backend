@@ -1,87 +1,48 @@
+// src/controllers/notificationController.js
+import pool from '../config/db.js';
+import { sendAndStoreNotification } from '../utils/sendNotification.js';
 
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import pool from './../config/db.js';
+export const notifyNow = async (req, res) => {
+  const { userId, title, message, type } = req.body;
 
-
-
-
-export const getNotifications = (req, res) => {
-  const { userId } = req.params;
-  pool.query(
-    'SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC',
-    [userId],
-    (err, results) => {
-      if (err) return res.status(500).json({ error: err });
-      res.json(results);
-    }     
-  );
-};
-
-
-export const addNotification = async (req, res) => {
-  let { user_id, userId, title, message, type, context } = req.body;
-
-  console.log("🔍 Incoming req.body:", req.body); // ADD THIS
-  const finalUserId = userId || user_id;
-
-  if (!finalUserId) {
-    console.warn("❌ sendNotification aborted — userId kshdksdh is missing or null.");
-    return res.status(400).json({ error: "User ID is required." });
+  if (!userId || !title || !message) {
+    return res.status(400).json({ message: "Missing fields" });
   }
-
-  let finalMessage = message || context || "No message provided.";
 
   try {
-    // Insert the notification into the database
-    const [result] = await pool.query(
-      "INSERT INTO notifications (user_id, title, message, type, context, created_at) VALUES (?, ?, ?, ?, ?, NOW())",
-      [finalUserId, title, finalMessage, type, context]
+    // emit via socket
+    await sendAndStoreNotification({ userId, title, message, type });
+
+    // optional: save to database
+    await pool.query(
+      `INSERT INTO notifications (user_id, title, message, type, read_status) VALUES (?, ?, ?, ?, 0)`,
+      [userId, title, message, type || 'info']
     );
 
-    const notificationPayload = {
-      id: result.insertId,
-      user_id: finalUserId,
-      title,
-      message: finalMessage,
-      type,
-      context,
-      read_status: 0,
-      created_at: new Date(),
-    };
-
-    // Emit notification via socket
-    try {
-      const io = getIO();
-      io.to(finalUserId.toString()).emit("new_notification", notificationPayload);
-      console.log("📢 Notification emitted to user", finalUserId);
-    } catch (socketErr) {
-      console.error("🔥 Socket emit error:", socketErr);
-    }
-
-    res.status(201).json(notificationPayload);
+    res.status(200).json({ message: "Notification sent" });
   } catch (err) {
-    console.error("❌ Notification error:", err);
-    res.status(500).json({ error: "Failed to add notification." });
+    console.error("Notification error:", err);
+    res.status(500).json({ message: "Failed to send notification" });
   }
 };
 
-
-export const markAsRead = (req, res) => {
-  const { id } = req.params;
-  pool.query('UPDATE notifications SET read_status = 1 WHERE id = ?', [id], (err) => {
-    if (err) return res.status(500).json({ error: err });
-    res.json({ message: 'Marked as read' });
-  });
+export const getUserNotifications = async (req, res) => {
+  const userId = req.params.userId;
+  const [rows] = await pool.query(
+    `SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC`,
+    [userId]
+  );
+  res.json(rows);
 };
 
-export const markAllAsRead = (req, res) => {
-  const { userId } = req.params;
-  pool.query(
-    'UPDATE notifications SET read_status = 1 WHERE user_id = ?',
-    [userId],
-    (err) => {
-      if (err) return res.status(500).json({ error: err });
-      res.json({ message: 'All marked as read' });
-    }
-  );
+export const markAsRead = async (req, res) => {
+  const id = req.params.id;
+  await pool.query(`UPDATE notifications SET read_status = 1 WHERE id = ?`, [id]);
+  res.json({ message: "Marked as read" });
+};
+
+export const markAllAsRead = async (req, res) => {
+  const userId = req.params.userId;
+  await pool.query(`UPDATE notifications SET read_status = 1 WHERE user_id = ?`, [userId]);
+  res.json({ message: "All marked as read" });
 };

@@ -1,5 +1,5 @@
 import pool from "../config/db.js";
-import { sendNotification } from "../utils/sendNotification.js";
+import { sendAndStoreNotification } from "../utils/sendNotification.js";
 
 export const getHygienists = async (req, res) => {
     try {
@@ -17,7 +17,7 @@ export const getHygienists = async (req, res) => {
                 label: hygienist.name
             }))
         );
-        await sendNotification({
+        await sendAndStoreNotification({
          userId: req.userId,
             title: "Hygienist Availability Updated",
             type: "hygienists",

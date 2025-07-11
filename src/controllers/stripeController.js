@@ -2,7 +2,7 @@
 import Stripe from 'stripe';
 import pool from '../config/db.js'; // If using MySQL for saving transactions
 import { sendSMS } from "../utils/sendSMS.js";
-import { sendNotification } from '../utils/sendNotification.js';
+import { sendAndStoreNotification } from '../utils/sendNotification.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -57,7 +57,7 @@ export const createCheckoutSession = async (req, res) => {
       [userId, 'Payment Received', 'Your payment of $99 was successful.', 'payment']
     );
     res.status(200).json({ url: paymentLink });
-    await sendNotification({
+    await sendAndStoreNotification({
       userId: req.userId,
       title: "Invoice Sent",
       type: "payment",

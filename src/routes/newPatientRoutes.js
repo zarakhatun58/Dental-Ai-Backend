@@ -2,7 +2,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import express from "express";
 import pool from "../config/db.js";
-import { sendNotification } from "../utils/sendNotification.js";
+import { sendAndStoreNotification } from "../utils/sendNotification.js";
 
 const router = express.Router();
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -114,15 +114,17 @@ router.get("/ai-insights", async (req, res) => {
     const response = await result.response;
     const aiInsights = await response.text();
 
-    res.json({
-      patients,
-      aiInsights // full AI response (can be parsed or displayed raw)
-    });
-    await sendNotification({
-   userId: req.userId,
+      await sendAndStoreNotification({
+      userId: req.userId, // make sure req.userId exists or handle fallback
       title: "AI Insight Available",
       type: "ai-insights",
       context: `New AI-driven recommendations are available for your practice.`
+    });
+
+    // Only send response once everything is complete
+    res.json({
+      patients,
+      aiInsights
     });
   } catch (err) {
     console.error("❌ AI Route Error:", err.message);

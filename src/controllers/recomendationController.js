@@ -1,7 +1,7 @@
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import pool from "../config/db.js";
-import { sendNotification } from "../utils/sendNotification.js";
+import { sendAndStoreNotification } from "../utils/sendNotification.js";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 export const getMatricsData = async (req, res) => {
@@ -21,18 +21,18 @@ export const getMatricsData = async (req, res) => {
     const [activity] = await pool.execute(`
       SELECT * FROM recent_activity ORDER BY created_at DESC LIMIT 5;
     `);
-    console.log("📊 Dashboard Summary:", summary[0]);
+    console.log("📊 Recomendation Summary:", summary[0]);
     console.log("🧾 Recent Activity:", activity);
     res.json({ metrics: summary[0], activity });
     await sendNotification({
      userId: req.userId,
       title: "Metrics Updated",
       type: "metrics",
-      context: `Your latest performance metrics have been updated on the dashboard.`
+      context: `Your latest performance metrics have been updated on the Recomendation.`
     });
   } catch (err) {
-    console.error("❌ Dashboard Error:", err);
-    res.status(500).json({ error: "Failed to fetch dashboard data." });
+    console.error("❌ Recomendation Error:", err);
+    res.status(500).json({ error: "Failed to fetch Recomendation data." });
   }
 };
 
@@ -175,7 +175,7 @@ export const getAIRecommendations = async (req, res) => {
       recommendations,
       fallbackUsed: recommendations === fallbackRecommendations
     });
-    await sendNotification({
+    await sendAndStoreNotification({
     userId: req.userId,
       title: "New Recommendation",
       type: "recommendation",

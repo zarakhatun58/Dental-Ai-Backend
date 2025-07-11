@@ -1,7 +1,7 @@
 import express from 'express';
 import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
-import { sendNotification } from '../utils/sendNotification.js';
+import { sendAndStoreNotification } from '../utils/sendNotification.js';
 
 dotenv.config();
 const router = express.Router();
@@ -37,7 +37,7 @@ router.get("/", async (req, res) => {
     `);
 
     res.json(rows);
-    await sendNotification({
+    await sendAndStoreNotification({
        userId: req.userId,
       title: "Appointment Booked",
       type: "appointmentsNew",

@@ -1,7 +1,7 @@
 // controllers/campaignController.js
 
 import pool from "../config/db.js";
-import { sendNotification } from "../utils/sendNotification.js";
+import { sendAndStoreNotification } from "../utils/sendNotification.js";
 
 
 // GET all campaigns
@@ -27,7 +27,7 @@ export const createCampaign = async (req, res) => {
 
     const [newCampaign] = await pool.query('SELECT * FROM campaigns WHERE id = ?', [result.insertId]);
 
-    await sendNotification({
+    await sendAndStoreNotification({
      userId: req.userId,
       title: "Campaign Launched",
       type: "campaign",
