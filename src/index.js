@@ -46,7 +46,7 @@ initSocket(server);
 // ✅ CORS setup
 const allowedOrigins = [
   'http://localhost:8080',
-  'https://dental-flow-ai-agent.lovable.app/',
+  'https://dental-flow-ai-agent.lovable.app',
 ];
 
 const corsOptions = {
@@ -54,6 +54,7 @@ const corsOptions = {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
+       console.error(`❌ CORS blocked from origin: ${origin}`);
       callback(new Error('❌ CORS blocked: Not allowed by server'));
     }
   },
