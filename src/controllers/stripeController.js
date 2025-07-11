@@ -58,7 +58,7 @@ export const createCheckoutSession = async (req, res) => {
     );
     res.status(200).json({ url: paymentLink });
     await sendNotification({
-      user_id: req.userId,
+      userId: req.userId,
       title: "Invoice Sent",
       type: "payment",
       context: `An invoice has been sent ${total}.`

@@ -106,7 +106,7 @@ export const getDashboardData = async (req, res) => {
     res.json(dashboardData);
     console.log(dashboardData);
     await sendNotification({
-      user_id: req.userId,
+   userId: req.userId,
       title: "Dashboard Accessed",
       type: "dashboard",
       context: `User accessed the dashboard on ${new Date().toLocaleString()}.`

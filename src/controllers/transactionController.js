@@ -23,7 +23,7 @@ export const createTransaction = async (req, res) => {
       transactionId: result.insertId,
     });
     await sendNotification({
-       user_id: req.userId,
+      userId: req.userId,
       title: "Payment Received",
       type: "transactions",
       context: `A new payment of ${amount} was received from ${payerName}.`

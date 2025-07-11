@@ -89,6 +89,8 @@ export const getSlotsByDate = async (req, res) => {
 // ✅ POST /api/slots/book
 export const bookSlot = async (req, res) => {
   const { patientId, date, time, chair } = req.body;
+  const userId = req.userId; // ✅ from auth middleware
+
   if (!patientId || !date || !time || !chair)
     return res.status(400).json({ error: "Missing required booking data" });
 
@@ -109,23 +111,28 @@ export const bookSlot = async (req, res) => {
       return res.status(404).json({ error: "Chair not found" });
     }
 
-    // For real app: insert into `appointment` table using OpenDental schema
-    // Here just mock response
-    await pool.query(
-  'INSERT INTO notifications (patientId, title, message, type) VALUES (?, ?, ?, ?)',
-  [userId, 'Payment Received', 'Your payment of $79 was successful.', 'payment']
-);
+    // TODO: Insert booking into OpenDental DB here (mock for now)
+
+    // ✅ Send notification
+    await sendNotification({
+    userId: req.userId,
+      title: 'Appointment Booked',
+      message: `You booked a slot on ${date} at ${time} in chair ${chair}.`,
+      type: 'booking',
+    });
+
     res.json({
       message: "Slot booked successfully",
       slot: {
         patientId,
         date,
-        time: formatTime(date, time),
+        time,
         chair,
         status: "booked",
       },
     });
   } catch (err) {
+    console.error("Booking error:", err);
     res.status(500).json({ error: "Booking failed", details: err.message });
   }
 };

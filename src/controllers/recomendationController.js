@@ -25,7 +25,7 @@ export const getMatricsData = async (req, res) => {
     console.log("🧾 Recent Activity:", activity);
     res.json({ metrics: summary[0], activity });
     await sendNotification({
-     user_id: req.userId,
+     userId: req.userId,
       title: "Metrics Updated",
       type: "metrics",
       context: `Your latest performance metrics have been updated on the dashboard.`
@@ -176,7 +176,7 @@ export const getAIRecommendations = async (req, res) => {
       fallbackUsed: recommendations === fallbackRecommendations
     });
     await sendNotification({
-      user_id: req.userId,
+    userId: req.userId,
       title: "New Recommendation",
       type: "recommendation",
       context: `A new recommendation is available based on recent data trends.`

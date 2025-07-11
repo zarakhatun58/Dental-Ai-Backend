@@ -1,97 +1,145 @@
-import User from "../models/user.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import pool from "../config/db.js";
 import { sendNotification } from "../utils/sendNotification.js";
 
+// 🚀 Register
+// ✅ No bcrypt used
 export const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: "All fields required." });
+    }
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser)
+    const [existing] = await pool.query("SELECT * FROM users WHERE email = ?", [email]);
+    if (existing.length > 0) {
       return res.status(400).json({ message: "User already exists" });
+    }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ name, email, password: hashedPassword });
-    await newUser.save();
-    await pool.query(
-      'INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)',
-      [newUser._id.toString(), 'User Registered', `${name} signed up`, 'system']
+    const [result] = await pool.query(
+      "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
+      [name, email, password]
     );
 
-    res.status(201).json({ message: "Registration successful" });
-      // Trigger system & Gemini-generated welcome notifications
-    await sendNotification({
-      user_id: newUser._id.toString(),
-      title: "User Registered",
-      message: `${name} signed up`,
-      type: "system"
+    const userId = result.insertId.toString();
+
+    // ✅ Send success response first so frontend can store user + connect socket
+    res.status(201).json({
+      message: "Registration successful",
+      userId,
+      user: {
+        id: userId,
+        name,
+        email,
+      },
     });
 
-    await sendNotification({
-      user_id: newUser._id.toString(),
-      title: "Welcome to SmilePro!",
-      type: "account",
-      context: `New user registered with email: ${newUser.email}`
-    });
+    // ⏳ Delay notification to allow frontend time to connect socket
+   setTimeout(async () => {
+  await sendNotification({
+    userId,
+    title: "User Registered",
+    message: `${name} signed up`,
+    type: "system",
+  });
+
+  await sendNotification({
+    userId,
+    title: "Welcome to SmilePro!",
+    type: "account",
+    context: `New user registered: ${email}`,
+  });
+
+  console.log(`📢 Notifications emitted to user ${userId} after registration`);
+}, 2000); 
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Registration error:", err.message);
+    res.status(500).json({ error: "Registration failed" });
   }
 };
 
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password required" });
+    }
 
-    const user = await User.findOne({ email });
-    if (!user)
-      return res.status(400).json({ message: "Invalid credentials" });
+    const [rows] = await pool.query(
+      "SELECT * FROM users WHERE email = ? AND password = ?",
+      [email, password]
+    );
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch)
-      return res.status(400).json({ message: "Invalid credentials" });
+    if (rows.length === 0) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "1d",
-    });
+    const user = rows[0];
+    const userId = user.id.toString();
 
+    // ✅ Send response first so frontend can store & connect socket
     res.json({
-      token,
-      user: { id: user._id, name: user.name, email: user.email },
+      message: "Login successful",
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+      },
     });
-    // Notify login event via Gemini
-    await sendNotification({
-      user_id: user._id.toString(),
-      title: "Login Successful",
-      type: "login",
-      context: `User logged in from IP ${req.ip} at ${new Date().toLocaleString()}`
-    });
+
+    // ⏳ Delay notification until socket joins
+    setTimeout(() => {
+      sendNotification({
+        userId,
+        title: "Login Successful",
+        message: `User ${user.name} logged in.`,
+        type: "login",
+      });
+    }, 1000); // 1 second delay
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Login error:", err.message);
+    res.status(500).json({ error: "Login failed" });
   }
 };
 
+
+
+
+
+
+
+// 👤 Get Profile
 export const getProfile = async (req, res) => {
-  const token = req.headers.authorization?.split(" ")[1];
+  const token = req.cookies.token;
   if (!token) return res.status(401).json({ message: "No token provided" });
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Use the ID from the decoded token to fetch user data
-    const user = await User.findById(decoded.id).select('-password');
+    const [users] = await pool.query(
+      "SELECT id, name, email, role FROM users WHERE id = ?",
+      [decoded.id]
+    );
 
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
+    const user = users[0];
+
+    if (!user) return res.status(404).json({ message: "User not found" });
 
     res.json(user);
   } catch (err) {
+    console.error("Profile error:", err.message);
     res.status(401).json({ message: "Invalid token" });
   }
 };
 
+// 🚪 Logout
 export const logout = (req, res) => {
-  res.json({ message: "Logged out" });
+  res.clearCookie("token", {
+    httpOnly: true,
+    sameSite: "Lax",
+    secure: process.env.NODE_ENV === "production",
+  });
+
+  res.json({ message: "Logged out successfully" });
 };

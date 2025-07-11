@@ -1,58 +1,57 @@
 import pool from '../config/db.js';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { getIO } from "../config/socket.js";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const geminiModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-// export const sendNotification = async ({ user_id, title, message, type, context }) => {
-//   try {
-//     if (!user_id) {
-//       console.warn("sendNotification skipped: user_id is missing");
-//       return;
-//     }
-
-//     let finalMessage = message;
-
-//     if (!message && context) {
-//       const result = await geminiModel.generateContent([
-//         `Generate a professional notification message for a ${type} event.`,
-//         `Title: ${title}`,
-//         `Context: ${context}`
-//       ]);
-//       const response = await result.response;
-//       finalMessage = await response.text();
-//     }
-
-//     await pool.query(
-//       'INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)',
-//       [user_id, title, finalMessage, type]
-//     );
-//   } catch (err) {
-//     console.error("Notification error:", err);
-//   }
-// };
-
-export const sendNotification = async ({ user_id, title, message, type, context }) => {
+export const sendNotification = async ({
+  userId,
+  title,
+  message,
+  type = "system",
+  context = null,
+}) => {
   try {
-    if (!user_id) {
-      console.warn("sendNotification skipped: user_id is missing");
+    const finalMessage = message || context || title;
+
+    if (!userId) {
+      console.warn("❌ sendNotification aborted — userId is missing or null.");
       return;
     }
 
-    if (!title || !type) {
-      console.warn("sendNotification skipped: title or type missing");
-      return;
-    }
-
-    const finalMessage = message || context || "";
-
-    await pool.query(
-      'INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)',
-      [user_id, title, finalMessage, type]
+    const [insertResult] = await pool.query(
+      "INSERT INTO notifications (user_id, title, message, type, context, created_at) VALUES (?, ?, ?, ?, ?, NOW())",
+      [userId, title, finalMessage, type, context]
     );
 
-    console.log(`✅ Notification sent to user ${user_id}: ${title}`);
+    const notificationId = insertResult?.insertId;
+    if (!notificationId) {
+      console.warn("⚠️ Notification insert ID missing — skipping emit.");
+      return;
+    }
+
+    let io;
+    try {
+      io = getIO();
+    } catch (e) {
+      console.warn("⚠️ Socket.IO not initialized — notification will not be emitted.");
+      return;
+    }
+
+    setTimeout(() => {
+      io.to(userId.toString()).emit("new_notification", {
+        id: notificationId,
+       userId: userId,
+        title,
+        message: finalMessage,
+        type,
+        context,
+        created_at: new Date().toISOString(),
+        read_status: 0,
+      });
+      console.log(`📢 Notification emitted to user ${userId}: ${title}`);
+    }, 300);
   } catch (err) {
-    console.error("❌ Notification error:", err);
+    console.error("❌ Failed to send notification:", err.message);
   }
 };
+
+
+

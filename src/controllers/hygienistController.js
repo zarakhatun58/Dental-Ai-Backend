@@ -18,7 +18,7 @@ export const getHygienists = async (req, res) => {
             }))
         );
         await sendNotification({
-         user_id: req.userId,
+         userId: req.userId,
             title: "Hygienist Availability Updated",
             type: "hygienists",
             context: `New availability has been added for hygienist .`

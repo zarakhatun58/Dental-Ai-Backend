@@ -119,7 +119,7 @@ router.get("/ai-insights", async (req, res) => {
       aiInsights // full AI response (can be parsed or displayed raw)
     });
     await sendNotification({
-   user_id: req.userId,
+   userId: req.userId,
       title: "AI Insight Available",
       type: "ai-insights",
       context: `New AI-driven recommendations are available for your practice.`

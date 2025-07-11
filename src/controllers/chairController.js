@@ -16,7 +16,7 @@ export const getChairs = async (req, res) => {
       }))
     );
     await sendNotification({
-        user_id: req.userId,
+     userId: req.userId,
       title: "Empty Chairs Alert",
       type: "chairs",
       context: `There are currently ${emptyChairs} unbooked chairs. Consider launching a recall campaign.`

@@ -68,7 +68,7 @@ Respond with:
       upsellSuggestion: upsell
     });
      await sendNotification({
-          user_id: req.userId,
+          userId: req.userId,
           title: "Booking Available",
           type: "ai-insights",
           context: `Booking are available for your practice.`

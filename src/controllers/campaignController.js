@@ -28,7 +28,7 @@ export const createCampaign = async (req, res) => {
     const [newCampaign] = await pool.query('SELECT * FROM campaigns WHERE id = ?', [result.insertId]);
 
     await sendNotification({
-    user_id: req.userId,
+     userId: req.userId,
       title: "Campaign Launched",
       type: "campaign",
       context: `Campaign "${name}" targeting "${targeting}" has been launched with a ${discount} offer.`

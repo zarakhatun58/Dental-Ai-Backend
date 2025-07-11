@@ -38,7 +38,7 @@ router.get("/", async (req, res) => {
 
     res.json(rows);
     await sendNotification({
-        user_id: req.userId,
+       userId: req.userId,
       title: "Appointment Booked",
       type: "appointmentsNew",
       context: `Appointment booked with ${patientName} on ${appointmentDate}.`

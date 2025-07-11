@@ -3,8 +3,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import pool from './../config/db.js';
 
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const geminiModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
 
 export const getNotifications = (req, res) => {
   const { userId } = req.params;
@@ -14,39 +13,55 @@ export const getNotifications = (req, res) => {
     (err, results) => {
       if (err) return res.status(500).json({ error: err });
       res.json(results);
-    }
+    }     
   );
 };
 
+
 export const addNotification = async (req, res) => {
-  const { user_id, title, message, type, context } = req.body;
+  let { user_id, userId, title, message, type, context } = req.body;
+
+  console.log("🔍 Incoming req.body:", req.body); // ADD THIS
+  const finalUserId = userId || user_id;
+
+  if (!finalUserId) {
+    console.warn("❌ sendNotification aborted — userId kshdksdh is missing or null.");
+    return res.status(400).json({ error: "User ID is required." });
+  }
+
+  let finalMessage = message || context || "No message provided.";
 
   try {
-    let finalMessage = message;
+    // Insert the notification into the database
+    const [result] = await pool.query(
+      "INSERT INTO notifications (user_id, title, message, type, context, created_at) VALUES (?, ?, ?, ?, ?, NOW())",
+      [finalUserId, title, finalMessage, type, context]
+    );
 
-    // If no custom message is provided, generate it using Gemini
-    if (!message && context) {
-      const result = await geminiModel.generateContent([
-        `Generate a professional notification message for a ${type} event.`,
-        `Title: ${title}`,
-        `Context: ${context}`
-      ]);
+    const notificationPayload = {
+      id: result.insertId,
+      user_id: finalUserId,
+      title,
+      message: finalMessage,
+      type,
+      context,
+      read_status: 0,
+      created_at: new Date(),
+    };
 
-      const response = await result.response;
-      finalMessage = await response.text();
+    // Emit notification via socket
+    try {
+      const io = getIO();
+      io.to(finalUserId.toString()).emit("new_notification", notificationPayload);
+      console.log("📢 Notification emitted to user", finalUserId);
+    } catch (socketErr) {
+      console.error("🔥 Socket emit error:", socketErr);
     }
 
-    pool.query(
-      'INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)',
-      [user_id, title, finalMessage, type],
-      (err, result) => {
-        if (err) return res.status(500).json({ error: err });
-        res.status(201).json({ id: result.insertId, message: finalMessage });
-      }
-    );
+    res.status(201).json(notificationPayload);
   } catch (err) {
-    console.error("Gemini error:", err);
-    res.status(500).json({ error: "Failed to generate message with Gemini." });
+    console.error("❌ Notification error:", err);
+    res.status(500).json({ error: "Failed to add notification." });
   }
 };
 
