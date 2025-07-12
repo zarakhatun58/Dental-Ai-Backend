@@ -44,25 +44,30 @@ initSocket(server);
 
 
 // ✅ CORS setup
-const allowedOrigins = [
-  'http://localhost:8080',
-  'https://dental-flow-ai-agent.lovable.app',
-];
+// const allowedOrigins = [
+//   'http://localhost:8080',
+//   'https://dental-flow-ai-agent.lovable.app',
+// ];
 
+// const corsOptions = {
+//   origin: function (origin, callback) {
+//     if (!origin || allowedOrigins.includes(origin)) {
+//       callback(null, true);
+//     } else {
+//        console.error(`❌ CORS blocked from origin: ${origin}`);
+//       callback(new Error('❌ CORS blocked: Not allowed by server'));
+//     }
+//   },
+//   methods: ['GET', 'POST', 'OPTIONS'],
+//   credentials: true,
+// };
 const corsOptions = {
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-       console.error(`❌ CORS blocked from origin: ${origin}`);
-      callback(new Error('❌ CORS blocked: Not allowed by server'));
-    }
-  },
-  methods: ['GET', 'POST', 'OPTIONS'],
+  origin: 'https://dental-flow-ai-agent.lovable.app',
   credentials: true,
 };
-
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
+
 app.use(express.json());
 app.use(cookieParser()); 
 
@@ -115,7 +120,7 @@ app.use("/api/promo", promoRoutes);
 app.use('/api/notification', notificationRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 
-// ✅ Protected routes (require token)
+// ✅ important routes
 app.use("/api/appointmentsNew", appointmentApi);
 app.use("/api/patientsNew", patientRoutesNew);
 app.use("/api",  slotRoutes);
