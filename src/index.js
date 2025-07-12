@@ -43,30 +43,26 @@ const server = http.createServer(app);
 initSocket(server);
 
 
-// ✅ CORS setup
-// const allowedOrigins = [
-//   'http://localhost:8080',
-//   'https://dental-flow-ai-agent.lovable.app',
-// ];
 
-// const corsOptions = {
-//   origin: function (origin, callback) {
-//     if (!origin || allowedOrigins.includes(origin)) {
-//       callback(null, true);
-//     } else {
-//        console.error(`❌ CORS blocked from origin: ${origin}`);
-//       callback(new Error('❌ CORS blocked: Not allowed by server'));
-//     }
-//   },
-//   methods: ['GET', 'POST', 'OPTIONS'],
-//   credentials: true,
-// };
+const allowedOrigins = [
+  'http://localhost:8080',
+  'https://dental-flow-ai-agent.lovable.app',
+];
+
 const corsOptions = {
-  origin: 'https://dental-flow-ai-agent.lovable.app',
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+       console.error(`❌ CORS blocked from origin: ${origin}`);
+      callback(new Error('❌ CORS blocked: Not allowed by server'));
+    }
+  },
+  methods: ['GET', 'POST', 'OPTIONS'],
   credentials: true,
 };
+
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
 
 app.use(express.json());
 app.use(cookieParser()); 
