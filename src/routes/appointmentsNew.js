@@ -1,21 +1,10 @@
 import express from 'express';
-import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
 import { sendAndStoreNotification } from '../utils/sendNotification.js';
+import pool from '../config/db.js';
 
 dotenv.config();
 const router = express.Router();
-
-// ✅ Create pool once
-const pool = mysql.createPool({
-  host: process.env.MYSQL_HOST || 'localhost',
-  user: process.env.MYSQL_USER || 'root',
-  password: process.env.MYSQL_PASSWORD || '',
-  database: process.env.MYSQL_DATABASE || 'opendental',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-});
 
 // ✅ Route using the pool
 router.get("/", async (req, res) => {

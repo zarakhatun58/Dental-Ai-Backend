@@ -67,15 +67,15 @@ Respond with:
       bookingId: aptResult.insertId,
       upsellSuggestion: upsell
     });
-    //  await sendAndStoreNotification({
-    //       userId: req.userId,
-    //       title: "Booking Available",
-    //       type: "ai-insights",
-    //       context: `Booking are available for your practice.`
-    //     });
+     await sendAndStoreNotification({
+          userId: userId,
+          title: "Booking Available",
+          type: "ai-insights",
+          message: `Booking are available for your practice.`
+        });
   } catch (err) {
-    console.error("Booking failed:", err.message);
-    res.status(500).json({ error: "Booking failed", details: err.message });
+    console.error("Booking failed:", err);
+    res.status(500).json({ error: "Booking failed", details: err });
   }
 });
 
