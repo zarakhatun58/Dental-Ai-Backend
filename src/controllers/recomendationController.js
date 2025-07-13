@@ -28,7 +28,7 @@ export const getMatricsData = async (req, res) => {
      userId: req.userId,
       title: "Metrics Updated",
       type: "metrics",
-      context: `Your latest performance metrics have been updated on the Recomendation.`
+      message: `Your latest performance metrics have been updated on the Recomendation.`
     });
   } catch (err) {
     console.error("❌ Recomendation Error:", err);
@@ -173,20 +173,24 @@ export const getAIRecommendations = async (req, res) => {
 
     res.status(200).json({
       recommendations,
-      fallbackUsed: recommendations === fallbackRecommendations
+      fallbackUsed: recommendations === fallbackRecommendations,
     });
-    await sendAndStoreNotification({
-    userId: req.userId,
+
+    // 🔔 Send notification non-blocking, AFTER response is sent
+    sendAndStoreNotification({
+      userId: req.userId,
       title: "New Recommendation",
-      type: "recommendation",
-      context: `A new recommendation is available based on recent data trends.`
+      message: `A new recommendation is available based on recent data trends.`,
+      type: "recommendation"
+    }).catch((notifErr) => {
+      console.warn("❌ Notification error (non-blocking):", notifErr.message);
     });
 
   } catch (err) {
     console.error("❌ AI Insight Error:", err);
     res.status(200).json({
       recommendations: fallbackRecommendations,
-      fallbackUsed: true
+      fallbackUsed: true,
     });
   }
 };

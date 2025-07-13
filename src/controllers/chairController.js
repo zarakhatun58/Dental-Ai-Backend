@@ -19,10 +19,27 @@ export const getChairs = async (req, res) => {
      userId: req.userId,
       title: "Empty Chairs Alert",
       type: "chairs",
-      context: `There are currently ${emptyChairs} unbooked chairs. Consider launching a recall campaign.`
+      message: `There are currently ${chairs} unbooked chairs. Consider launching a recall campaign.`
     });
   } catch (err) {
     console.error("Error fetching chairs:", err.message);
     res.status(500).json({ error: "Failed to fetch chairs" });
   }
 };
+
+
+/*If you plan to track chair usage, you might consider a related table like:
+
+sql
+Copy
+Edit
+CREATE TABLE operatory_schedule (
+  ScheduleId INT AUTO_INCREMENT PRIMARY KEY,
+  OperatoryNum INT,
+  HygienistId INT,
+  AppointmentStart DATETIME,
+  AppointmentEnd DATETIME,
+  FOREIGN KEY (OperatoryNum) REFERENCES operatory(OperatoryNum)
+);
+This allows tracking which chair is booked when and by whom.
+*/

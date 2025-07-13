@@ -61,7 +61,7 @@ export const createCheckoutSession = async (req, res) => {
       userId: req.userId,
       title: "Invoice Sent",
       type: "payment",
-      context: `An invoice has been sent ${total}.`
+      message: `An invoice has been sent ${total}.`
     });
 
   } catch (err) {

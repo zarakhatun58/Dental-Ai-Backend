@@ -137,7 +137,7 @@ router.get("/ai-insights", async (req, res) => {
         userId: req.userId ?? 1,
         title: "AI Insight Available",
         type: "ai-insights",
-        context: `New AI-driven recommendations are available for your practice.`
+        message: `New AI-driven recommendations are available for your practice.`
       });
     } catch (notifyErr) {
       console.error("❌ Notification error (non-blocking):", notifyErr);

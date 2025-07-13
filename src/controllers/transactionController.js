@@ -26,7 +26,7 @@ export const createTransaction = async (req, res) => {
       userId: req.userId,
       title: "Payment Received",
       type: "transactions",
-      context: `A new payment of ${amount} was received from ${payerName}.`
+      message: `A new payment of ${amount} was received from ${payerName}.`
     });
 
   } catch (error) {

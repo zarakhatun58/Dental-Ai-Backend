@@ -41,7 +41,7 @@ router.get("/", async (req, res) => {
        userId: req.userId,
       title: "Appointment Booked",
       type: "appointmentsNew",
-      context: `Appointment booked with ${patientName} on ${appointmentDate}.`
+      message: `Appointment booked with ${patientName} on ${appointmentDate}.`
     });
   } catch (error) {
     console.error("Error fetching appointments with patient:", error);

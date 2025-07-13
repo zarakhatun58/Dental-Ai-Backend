@@ -114,13 +114,7 @@ export const bookSlot = async (req, res) => {
 
     // TODO: Insert booking into OpenDental DB here (mock for now)
 
-    // ✅ Send notification
-    await sendAndStoreNotification({
-    userId: req.userId,
-      title: 'Appointment Booked',
-      message: `You booked a slot on ${date} at ${time} in chair ${chair}.`,
-      type: 'booking',
-    });
+   
 
     res.json({
       message: "Slot booked successfully",
@@ -131,6 +125,13 @@ export const bookSlot = async (req, res) => {
         chair,
         status: "booked",
       },
+    });
+ // ✅ Send notification
+    await sendAndStoreNotification({
+    userId: req.userId,
+      title: 'Appointment Booked',
+      message: `You booked a slot on ${date} at ${time} in chair ${chair}.`,
+      type: 'booking',
     });
   } catch (err) {
     console.error("Booking error:", err);
