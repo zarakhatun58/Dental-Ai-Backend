@@ -24,12 +24,12 @@ export const getMatricsData = async (req, res) => {
     console.log("📊 Recomendation Summary:", summary[0]);
     console.log("🧾 Recent Activity:", activity);
     res.json({ metrics: summary[0], activity });
-    await sendAndStoreNotification({
-     userId: req.userId,
-      title: "Metrics Updated",
-      type: "metrics",
-      message: `Your latest performance metrics have been updated on the Recomendation.`
-    });
+    // await sendAndStoreNotification({
+    //  userId: req.userId,
+    //   title: "Metrics Updated",
+    //   type: "metrics",
+    //   message: `Your latest performance metrics have been updated on the Recomendation.`
+    // });
   } catch (err) {
     console.error("❌ Recomendation Error:", err);
     res.status(500).json({ error: "Failed to fetch Recomendation data." });
@@ -177,14 +177,14 @@ export const getAIRecommendations = async (req, res) => {
     });
 
     // 🔔 Send notification non-blocking, AFTER response is sent
-    sendAndStoreNotification({
-      userId: req.userId,
-      title: "New Recommendation",
-      message: `A new recommendation is available based on recent data trends.`,
-      type: "recommendation"
-    }).catch((notifErr) => {
-      console.warn("❌ Notification error (non-blocking):", notifErr.message);
-    });
+    // sendAndStoreNotification({
+    //   userId: req.userId,
+    //   title: "New Recommendation",
+    //   message: `A new recommendation is available based on recent data trends.`,
+    //   type: "recommendation"
+    // }).catch((notifErr) => {
+    //   console.warn("❌ Notification error (non-blocking):", notifErr.message);
+    // });
 
   } catch (err) {
     console.error("❌ AI Insight Error:", err);

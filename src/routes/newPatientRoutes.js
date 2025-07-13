@@ -132,16 +132,16 @@ router.get("/ai-insights", async (req, res) => {
 
     res.json({ patients, aiInsights });
 
-    try {
-      await sendAndStoreNotification({
-        userId: req.userId ?? 1,
-        title: "AI Insight Available",
-        type: "ai-insights",
-        message: `New AI-driven recommendations are available for your practice.`
-      });
-    } catch (notifyErr) {
-      console.error("❌ Notification error (non-blocking):", notifyErr);
-    }
+    // try {
+    //   await sendAndStoreNotification({
+    //     userId: req.userId ?? 1,
+    //     title: "AI Insight Available",
+    //     type: "ai-insights",
+    //     message: `New AI-driven recommendations are available for your practice.`
+    //   });
+    // } catch (notifyErr) {
+    //   console.error("❌ Notification error (non-blocking):", notifyErr);
+    // }
   } catch (err) {
     console.error("❌ AI Route Error:", err);
     res.status(500).json({ error: "Failed to fetch AI insights." });

@@ -27,12 +27,12 @@ export const createCampaign = async (req, res) => {
 
     const [newCampaign] = await pool.query('SELECT * FROM campaigns WHERE id = ?', [result.insertId]);
     res.status(201).json(newCampaign[0]);
-    await sendAndStoreNotification({
-      userId: req.userId,
-      title: "Campaign Launched",
-      type: "campaign",
-      message: `Campaign "${name}" targeting "${targeting}" has been launched with a ${discount} offer.`
-    });
+    // await sendAndStoreNotification({
+    //   userId: req.userId,
+    //   title: "Campaign Launched",
+    //   type: "campaign",
+    //   message: `Campaign "${name}" targeting "${targeting}" has been launched with a ${discount} offer.`
+    // });
 
 
   } catch (err) {

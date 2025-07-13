@@ -57,12 +57,12 @@ export const createCheckoutSession = async (req, res) => {
       [userId, 'Payment Received', 'Your payment of $99 was successful.', 'payment']
     );
     res.status(200).json({ url: paymentLink });
-    await sendAndStoreNotification({
-      userId: req.userId,
-      title: "Invoice Sent",
-      type: "payment",
-      message: `An invoice has been sent ${total}.`
-    });
+    // await sendAndStoreNotification({
+    //   userId: req.userId,
+    //   title: "Invoice Sent",
+    //   type: "payment",
+    //   message: `An invoice has been sent ${total}.`
+    // });
 
   } catch (err) {
     console.error('Stripe Checkout error:', err.message);

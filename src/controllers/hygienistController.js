@@ -16,12 +16,12 @@ export const getHygienists = async (req, res) => {
       hygienists.map(h => ({ id: h.id, label: h.name }))
     );
 
-    await sendAndStoreNotification({
-      userId,
-      title: "Hygienist Availability Updated",
-      type: "hygienists",
-      message: `${hygienists.length} hygienist(s) are currently available.`
-    });
+    // await sendAndStoreNotification({
+    //   userId,
+    //   title: "Hygienist Availability Updated",
+    //   type: "hygienists",
+    //   message: `${hygienists.length} hygienist(s) are currently available.`
+    // });
 
   } catch (err) {
     console.error("Error fetching hygienists:", err.message);

@@ -1,8 +1,17 @@
+import rateLimit from 'express-rate-limit';
 import { Server } from 'socket.io';
 
 let io;
 
-  export const initSocket = (server) => {
+  export const initSocket = (server, app) => {
+
+     const socketLimiter = rateLimit({
+    windowMs: 1 * 60 * 1000, // 1 minute
+    max: 100, // limit each IP to 100 requests per minute
+    message: 'Too many socket connections from this IP, please try again later',
+  });
+
+  app.use('/socket.io', socketLimiter);
   io = new Server(server, {
     cors: {
       origin: [

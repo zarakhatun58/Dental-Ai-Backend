@@ -127,12 +127,12 @@ export const bookSlot = async (req, res) => {
       },
     });
  // ✅ Send notification
-    await sendAndStoreNotification({
-    userId: req.userId,
-      title: 'Appointment Booked',
-      message: `You booked a slot on ${date} at ${time} in chair ${chair}.`,
-      type: 'booking',
-    });
+    // await sendAndStoreNotification({
+    // userId: req.userId,
+    //   title: 'Appointment Booked',
+    //   message: `You booked a slot on ${date} at ${time} in chair ${chair}.`,
+    //   type: 'booking',
+    // });
   } catch (err) {
     console.error("Booking error:", err);
     res.status(500).json({ error: "Booking failed", details: err.message });
