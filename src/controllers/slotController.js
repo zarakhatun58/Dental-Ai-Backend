@@ -25,22 +25,23 @@ export const getSlotsByDate = async (req, res) => {
   try {
     const [chairs] = await pool.query(`SELECT OperatoryNum, OpName AS chair FROM operatory`);
 
-    const [appointments] = await pool.query(`
-      SELECT
-        a.AptNum AS id,
-        TIME(a.AptDateTime) AS time,
-        DATE(a.AptDateTime) AS date,
-        o.OpName AS chair,
-        a.AptStatus AS status_raw,         -- changed
-        a.ProcedureCode AS type,           -- changed
-        p.FName, p.LName,
-        COALESCE(p.WirelessPhone, p.HmPhone, p.WkPhone) AS phone,
-        p.Email
-      FROM appointment a
-      JOIN patient p ON a.PatNum = p.PatNum
-      JOIN operatory o ON a.Op = o.OperatoryNum
-      WHERE DATE(a.AptDateTime) = ?
-    `, [date]);
+ const [appointments] = await pool.query(`
+  SELECT
+    a.AptNum AS id,
+    TIME(a.AptDateTime) AS time,
+    DATE(a.AptDateTime) AS date,
+    o.OpName AS chair,
+    a.AptStatus AS status_raw,
+    a.ProcDescript AS type,
+    p.FName, p.LName,
+    COALESCE(p.WirelessPhone, p.HmPhone, p.WkPhone) AS phone,
+    p.Email
+  FROM appointment a
+  JOIN patient p ON a.PatNum = p.PatNum
+  JOIN operatory o ON a.Op = o.OperatoryNum
+  WHERE DATE(a.AptDateTime) = ?
+`, [date]);
+
 
     const fullGrid = [];
     for (const { chair } of chairs) {
