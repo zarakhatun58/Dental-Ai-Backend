@@ -39,7 +39,7 @@ router.post("/send-promo", async (req, res) => {
         text: message,
       });
     }
-
+  res.json({ success: true });
     // 4. ✅ Send notification (non-blocking)
     try {
       await sendAndStoreNotification({
@@ -52,7 +52,7 @@ router.post("/send-promo", async (req, res) => {
       console.warn("❌ Notification error (non-blocking):", notifErr.message);
     }
 
-    res.json({ success: true });
+  
   } catch (err) {
     console.error("Send error:", err);
     res.status(500).json({ error: "Failed to send message." });
