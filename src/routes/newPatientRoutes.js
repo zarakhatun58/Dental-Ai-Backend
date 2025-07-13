@@ -83,10 +83,9 @@ router.get("/ai-insights", async (req, res) => {
         MAX(a.AptDateTime) AS lastVisit
       FROM patient p
       LEFT JOIN appointment a ON a.PatNum = p.PatNum
-      WHERE p.PatStatus = 0
-        AND p.PatNum IN (9, 7, 6, 5, 10, 4, 3, 2, 11, 1)
       GROUP BY p.PatNum
-      ORDER BY lastVisit DESC;
+      ORDER BY lastVisit DESC
+      LIMIT 20;
     `);
 
     const patients = rows.map((p) => {
@@ -105,32 +104,33 @@ router.get("/ai-insights", async (req, res) => {
       };
     });
 
-    // Send to Gemini for insight generation
-    const prompt = `Analyze this dental patient data and provide a risk level, no-show probability, and upsell opportunity per patient:\n\n${JSON.stringify(
-      patients
-    )}`;
+    if (!patients.length) {
+      throw new Error("No valid patients found.");
+    }
+
+    console.log("🧪 Patient Data Sent to Gemini:", patients);
+
+    const prompt = `Analyze this dental patient data and provide a risk level, no-show probability, and upsell opportunity per patient:\n\n${JSON.stringify(patients)}`;
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const aiInsights = await response.text();
 
-      await sendAndStoreNotification({
-      userId: req.userId, // make sure req.userId exists or handle fallback
+    await sendAndStoreNotification({
+      userId: req.userId ?? 1,
       title: "AI Insight Available",
       type: "ai-insights",
-      context: `New AI-driven recommendations are available for your practice.`
+      context: "New AI-driven recommendations are available for your practice."
     });
 
-    // Only send response once everything is complete
-    res.json({
-      patients,
-      aiInsights
-    });
+    res.json({ patients, aiInsights });
   } catch (err) {
     console.error("❌ AI Route Error:", err.message);
     res.status(500).json({ error: "Failed to fetch AI insights." });
   }
 });
+
+
 
 
 
