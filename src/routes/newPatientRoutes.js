@@ -74,6 +74,8 @@ const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 router.get("/ai-insights", async (req, res) => {
   try {
+    console.log("⏳ Fetching patients from DB...");
+
     const [rows] = await pool.execute(`
       SELECT 
         p.PatNum AS id,
@@ -87,7 +89,8 @@ router.get("/ai-insights", async (req, res) => {
       ORDER BY lastVisit DESC
       LIMIT 20;
     `);
-
+    console.log("✅ DB query returned:", rows.length, "rows");
+    console.dir(rows, { depth: null });
     const patients = rows.map((p) => {
       const lastVisitDate = p.lastVisit ? new Date(p.lastVisit) : null;
       const daysSince = lastVisitDate
@@ -103,32 +106,42 @@ router.get("/ai-insights", async (req, res) => {
         daysSince
       };
     });
-
     if (!patients.length) {
-      throw new Error("No valid patients found.");
+      console.warn("⚠️ No patients found.");
+      return res.json({ patients: [], aiInsights: "No patient data available." });
     }
-
-    console.log("🧪 Patient Data Sent to Gemini:", patients);
 
     const prompt = `Analyze this dental patient data and provide a risk level, no-show probability, and upsell opportunity per patient:\n\n${JSON.stringify(patients)}`;
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const aiInsights = await response.text();
+    console.log("⏳ Sending prompt to Gemini...");
 
-    await sendAndStoreNotification({
-      userId: req.userId ?? 1,
-      title: "AI Insight Available",
-      type: "ai-insights",
-      context: "New AI-driven recommendations are available for your practice."
-    });
-
+    let aiInsights;
+    try {
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      aiInsights = await response.text();
+    } catch (aiErr) {
+      console.error("❌ Gemini error:", aiErr);
+      aiInsights = "AI analysis failed.";
+    }
     res.json({ patients, aiInsights });
+
+    try {
+      await sendAndStoreNotification({
+        userId: req.userId ?? 1,
+        title: "AI Insight Available",
+        type: "ai-insights",
+        context: `New AI-driven recommendations are available for your practice.`
+      });
+    } catch (notifyErr) {
+      console.error("❌ Notification error (non-blocking):", notifyErr);
+    }
   } catch (err) {
-    console.error("❌ AI Route Error:", err.message);
+    console.error("❌ AI Route Error:", err);
     res.status(500).json({ error: "Failed to fetch AI insights." });
   }
 });
+
 
 
 
