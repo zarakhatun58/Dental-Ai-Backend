@@ -19,7 +19,7 @@ export const getChairs = async (req, res) => {
      userId: req.userId,
       title: "Empty Chairs Alert",
       type: "chairs",
-      message: `There are currently ${chairs} unbooked chairs. Consider launching a recall campaign.`
+      message: `There are currently ${chairs.length} unbooked chairs. Consider launching a recall campaign.`
     });
   } catch (err) {
     console.error("Error fetching chairs:", err.message);

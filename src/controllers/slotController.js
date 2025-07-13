@@ -31,8 +31,8 @@ export const getSlotsByDate = async (req, res) => {
         TIME(a.AptDateTime) AS time,
         DATE(a.AptDateTime) AS date,
         o.OpName AS chair,
-        a.Confirmed AS status_raw,
-        a.ProcDescript AS type,
+        a.AptStatus AS status_raw,         -- changed
+        a.ProcedureCode AS type,           -- changed
         p.FName, p.LName,
         COALESCE(p.WirelessPhone, p.HmPhone, p.WkPhone) AS phone,
         p.Email
@@ -43,39 +43,25 @@ export const getSlotsByDate = async (req, res) => {
     `, [date]);
 
     const fullGrid = [];
-
     for (const { chair } of chairs) {
       for (const time of TIME_SLOTS) {
         const a = appointments.find(x => x.chair === chair && x.time === time);
         if (a) {
-          // const risk = await mockRiskAnalysis(`${a.FName} ${a.LName}`);
-          const risk = await getRiskFromGemini(
-            `${a.FName} ${a.LName}`,
-            a.type,
-            a.phone,
-            a.Email
-          );
+          const risk = await getRiskFromGemini(`${a.FName} ${a.LName}`, a.type, a.phone, a.Email);
           fullGrid.push({
             id: a.id,
             date,
             time: formatTime(date, time),
             chair,
-            status: "booked",
+            status: 'booked',
             patient: `${a.FName} ${a.LName}`,
-            type: a.type || "cleaning",
+            type: a.type || 'cleaning',
             phone: a.phone,
             email: a.Email,
             risk,
           });
         } else {
-          fullGrid.push({
-            id: null,
-            date,
-            time: formatTime(date, time),
-            chair,
-            status: "available",
-            type: "cleaning"
-          });
+          fullGrid.push({ id: null, date, time: formatTime(date, time), chair, status: 'available', type: 'cleaning' });
         }
       }
     }
