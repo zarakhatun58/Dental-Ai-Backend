@@ -82,6 +82,7 @@ router.get("/ai-insights", async (req, res) => {
         CONCAT(p.LName, ' ', p.FName) AS name,
         COALESCE(p.WirelessPhone, p.HmPhone, p.WkPhone) AS phone,
         p.Email AS email,
+        p.riskLevel,
         MAX(a.AptDateTime) AS lastVisit
       FROM patient p
       LEFT JOIN appointment a ON a.PatNum = p.PatNum
@@ -89,8 +90,10 @@ router.get("/ai-insights", async (req, res) => {
       ORDER BY lastVisit DESC
       LIMIT 20;
     `);
+
     console.log("✅ DB query returned:", rows.length, "rows");
     console.dir(rows, { depth: null });
+
     const patients = rows.map((p) => {
       const lastVisitDate = p.lastVisit ? new Date(p.lastVisit) : null;
       const daysSince = lastVisitDate
@@ -102,10 +105,12 @@ router.get("/ai-insights", async (req, res) => {
         name: p.name,
         phone: p.phone?.trim() || "",
         email: p.email?.trim() || "",
+        riskLevel: p.riskLevel?.trim().toLowerCase() || "unknown",
         lastVisit: lastVisitDate ? lastVisitDate.toISOString().split("T")[0] : "N/A",
         daysSince
       };
     });
+
     if (!patients.length) {
       console.warn("⚠️ No patients found.");
       return res.json({ patients: [], aiInsights: "No patient data available." });
@@ -124,6 +129,7 @@ router.get("/ai-insights", async (req, res) => {
       console.error("❌ Gemini error:", aiErr);
       aiInsights = "AI analysis failed.";
     }
+
     res.json({ patients, aiInsights });
 
     try {
@@ -141,6 +147,7 @@ router.get("/ai-insights", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch AI insights." });
   }
 });
+
 
 
 
