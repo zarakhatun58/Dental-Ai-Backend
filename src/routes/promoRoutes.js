@@ -11,48 +11,57 @@ router.post("/send-promo", async (req, res) => {
   }
 
   try {
-    // 1. Save to DB
+    // 1. Save to promotions table
     await pool.query(
-      "INSERT INTO promotions (patient_id, promo_code, method, sent_at) VALUES (?, ?, ?, NOW())",
+      `INSERT INTO promotions (patient_id, promo_code, method, sent_at) VALUES (?, ?, ?, NOW())`,
       [patientId, promoCode, method]
     );
 
-    // 2. Get patient info
-    const [rows] = await pool.query("SELECT name, email, phone FROM patients WHERE id = ?", [patientId]);
+    // 2. Get patient details from 'patient' table
+    const [rows] = await pool.query(
+      `SELECT FName, LName, Email, WirelessPhone FROM patient WHERE PatNum = ?`,
+      [patientId]
+    );
     const patient = rows[0];
     if (!patient) return res.status(404).json({ error: "Patient not found" });
 
-    // 3. Send message
-    if (method === "sms" && patient.phone) {
+    const fullName = `${patient.FName} ${patient.LName}`;
+    const phone = patient.WirelessPhone;
+    const email = patient.Email;
+
+    // 3. Send promo via SMS or Email
+    if (method === "sms" && phone) {
       await twilioClient.messages.create({
         body: message,
-        to: patient.phone,
+        to: phone,
         from: process.env.TWILIO_PHONE,
       });
     }
 
-    if (method === "email" && patient.email) {
+    if (method === "email" && email) {
       await transporter.sendMail({
         from: `"PromoBot" <${process.env.EMAIL_USER}>`,
-        to: patient.email,
+        to: email,
         subject: "🎁 Your Promo Code",
         text: message,
       });
     }
-  res.json({ success: true });
-    // 4. ✅ Send notification (non-blocking)
+
+    // 4. Respond success
+    res.json({ success: true });
+
+    // 5. 🔔 Send notification (non-blocking)
     try {
       await sendAndStoreNotification({
-        userId: req.user?.id || 1, // fallback to user ID 1 if no auth
-        title: `${method.toUpperCase()} sent to ${patient.name}`,
-        type: "contact",
-        context: `Promo code ${promoCode} was sent to patient ${patient.name} via ${method}.`,
+        userId: req.user?.id || 1,
+        title: `${method.toUpperCase()} sent to ${fullName}`,
+        message: `Promo code ${promoCode} was sent to patient ${fullName} via ${method}.`,
+        type: "contact"
       });
     } catch (notifErr) {
       console.warn("❌ Notification error (non-blocking):", notifErr.message);
     }
 
-  
   } catch (err) {
     console.error("Send error:", err);
     res.status(500).json({ error: "Failed to send message." });
