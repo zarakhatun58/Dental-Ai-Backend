@@ -17,12 +17,12 @@ router.post("/send-promo", async (req, res) => {
       [patientId, promoCode, method]
     );
 
-    // 2. Send via SMS or Email
+    // 2. Get patient info
     const [rows] = await pool.query("SELECT name, email, phone FROM patients WHERE id = ?", [patientId]);
     const patient = rows[0];
-
     if (!patient) return res.status(404).json({ error: "Patient not found" });
 
+    // 3. Send message
     if (method === "sms" && patient.phone) {
       await twilioClient.messages.create({
         body: message,
@@ -38,6 +38,18 @@ router.post("/send-promo", async (req, res) => {
         subject: "🎁 Your Promo Code",
         text: message,
       });
+    }
+
+    // 4. ✅ Send notification (non-blocking)
+    try {
+      await sendAndStoreNotification({
+        userId: req.user?.id || 1, // fallback to user ID 1 if no auth
+        title: `${method.toUpperCase()} sent to ${patient.name}`,
+        type: "contact",
+        context: `Promo code ${promoCode} was sent to patient ${patient.name} via ${method}.`,
+      });
+    } catch (notifErr) {
+      console.warn("❌ Notification error (non-blocking):", notifErr.message);
     }
 
     res.json({ success: true });
