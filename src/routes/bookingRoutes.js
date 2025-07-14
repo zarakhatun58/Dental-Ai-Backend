@@ -84,26 +84,28 @@ router.post("/book-appointment", async (req, res) => {
     fullName,
     phone,
     email,
-    insurance,
+    insurance,   // expected to be the insurance ID or null
     date,
     time,
-    chair,       // expected to be numeric id (e.g. 1, 2, 3...)
-    hygienist,
+    chair,       // numeric Op (e.g., 1, 2, 3)
+    hygienist,   // optional field (currently unused in DB)
     promoCode
   } = req.body;
 
-  const userId = req.user?.id; // for notifications
+  // Optional userId (e.g., if auth is enabled)
+  const userId = req.user?.id;
 
   try {
-    const [FName, ...LNameArr] = fullName.split(" ");
+    // Parse name
+    const [FName, ...LNameArr] = fullName.trim().split(" ");
     const LName = LNameArr.join(" ") || "";
 
-    // Save patient
+    // Build patient insert query
     const patientFields = ['FName', 'LName', 'WirelessPhone', 'Email'];
     const patientValues = [FName, LName, phone, email];
 
     if (insurance) {
-      patientFields.push('InsurancePlan');
+      patientFields.push('InsuranceID'); // must match column in your DB
       patientValues.push(insurance);
     }
 
@@ -111,9 +113,10 @@ router.post("/book-appointment", async (req, res) => {
       `INSERT INTO patient (${patientFields.join(", ")}) VALUES (${patientFields.map(() => '?').join(", ")})`,
       patientValues
     );
+
     const PatNum = patientResult.insertId;
 
-    // Save appointment
+    // Appointment
     const Op = parseInt(chair) || 1;
     const AptDateTime = `${date} ${time}:00`;
 
@@ -122,7 +125,7 @@ router.post("/book-appointment", async (req, res) => {
       [PatNum, AptDateTime, Op, "Cleaning"]
     );
 
-    // Optional: Gemini Upsell Suggestion
+    // AI Upsell suggestion
     let upsell = null;
     try {
       const prompt = `
@@ -141,7 +144,7 @@ Respond with:
       console.warn("Gemini error:", err.message);
     }
 
-    // Send notification (only if userId is available)
+    // Optional notification
     if (userId) {
       await sendAndStoreNotification({
         userId,
@@ -151,7 +154,6 @@ Respond with:
       });
     }
 
-    // Success response
     res.json({
       message: "Appointment booked successfully",
       bookingId: aptResult.insertId,
@@ -163,5 +165,6 @@ Respond with:
     res.status(500).json({ error: "Booking failed", details: err.message });
   }
 });
+
 
 export default router;
