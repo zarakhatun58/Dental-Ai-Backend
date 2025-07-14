@@ -2,6 +2,30 @@
 import pool from '../config/db.js';
 import { sendAndStoreNotification } from '../utils/sendNotification.js';
 
+// export const notifyNow = async (req, res) => {
+//   const { userId, title, message, type } = req.body;
+
+//   if (!userId || !title || !message) {
+//     return res.status(400).json({ message: "Missing fields" });
+//   }
+
+//   try {
+//     // emit via socket
+//     await sendAndStoreNotification({ userId, title, message, type });
+
+//     // optional: save to database
+//     await pool.query(
+//       `INSERT INTO notifications (user_id, title, message, type, read_status) VALUES (?, ?, ?, ?, 0)`,
+//       [userId, title, message, type || 'info']
+//     );
+
+//     res.status(200).json({ message: "Notification sent" });
+//   } catch (err) {
+//     console.error("Notification error:", err);
+//     res.status(500).json({ message: "Failed to send notification" });
+//   }
+// };
+
 export const notifyNow = async (req, res) => {
   const { userId, title, message, type } = req.body;
 
@@ -10,14 +34,8 @@ export const notifyNow = async (req, res) => {
   }
 
   try {
-    // emit via socket
+    // Send notification (handles DB + socket)
     await sendAndStoreNotification({ userId, title, message, type });
-
-    // optional: save to database
-    await pool.query(
-      `INSERT INTO notifications (user_id, title, message, type, read_status) VALUES (?, ?, ?, ?, 0)`,
-      [userId, title, message, type || 'info']
-    );
 
     res.status(200).json({ message: "Notification sent" });
   } catch (err) {
