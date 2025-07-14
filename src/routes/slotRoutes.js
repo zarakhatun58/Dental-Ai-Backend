@@ -1,5 +1,6 @@
 import express from 'express';
 import { getSlotsByDate, bookSlot } from '../controllers/slotController.js';
+import pool from '../config/db.js';
 
 const router = express.Router();
 
