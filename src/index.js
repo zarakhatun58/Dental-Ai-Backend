@@ -33,6 +33,7 @@ import promoRoutes from './routes/promoRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import recomRoutes from './routes/recomRoutes.js';
+import liveChatRoutes from './routes/liveChatRoutes.js';
 import cookieParser from 'cookie-parser';
 import { initSocket } from "./config/socket.js";
 
@@ -42,7 +43,6 @@ const app = express();
 const server = http.createServer(app);
 
 initSocket(server, app);
-
 
 
 const allowedOrigins = [
@@ -143,6 +143,7 @@ app.use("/api/transactions", transactionRoutes);
 app.use("/api/stripe", stripeRoutes);
 app.use("/api/ai", recomRoutes);
 app.use("/api/campaigns", campRoutes);
+app.use("/api/livechat", liveChatRoutes);
 
 // ✅ Start server
 const PORT = process.env.PORT || 5000;
