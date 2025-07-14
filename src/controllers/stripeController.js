@@ -10,91 +10,14 @@ const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
 // Create a Stripe Checkout session
 
-// export const createCheckoutSession = async (req, res) => {
-//   try {
-//        const userId = req.userId ?? null; 
-//     const { patient, service, amount, email, phone, bookingId } = req.body; // ✅ include phone
-//     const successUrl = `${process.env.FRONTEND_URL}/success`;
-//     const cancelUrl = `${process.env.FRONTEND_URL}/cancel`;
-
-//     const session = await stripe.checkout.sessions.create({
-//       payment_method_types: ['card'],
-//       line_items: [
-//         {
-//           price_data: {
-//             currency: 'usd',
-//             product_data: {
-//               name: `${service} for ${patient}`,
-//             },
-//             unit_amount: parseFloat(amount) * 100,
-//           },
-//           quantity: 1,
-//         },
-//       ],
-//       mode: 'payment',
-//       success_url: successUrl,
-//       cancel_url: cancelUrl,
-//       customer_email: email,
-//       metadata: {
-//         patient,
-//         phone,
-//         bookingId,
-//         email,
-//       },
-//     });
-
-//     console.log("✅ Stripe Success URL:", successUrl);
-//     console.log("✅ Stripe Cancel URL:", cancelUrl);
-//     const paymentLink = session.url;
-
-//     // ✅ Send SMS or Email to the patient
-//     // await sendNotificationToPatient({ phone, email, paymentLink, patient, service });
-
-//     // ✅ Notify admin of new checkout link created
-//     // await notifyAdmin({ patient, service, amount, link: paymentLink });
-//     await pool.query(
-//       'INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)',
-//       [userId, 'Payment Received', 'Your payment of $99 was successful.', 'payment']
-//     );
-//     res.status(200).json({ url: paymentLink });
-//     // await sendAndStoreNotification({
-//     //   userId: req.userId,
-//     //   title: "Invoice Sent",
-//     //   type: "payment",
-//     //   message: `An invoice has been sent ${total}.`
-//     // });
-
-//   } catch (err) {
-//     console.error('Stripe Checkout error:', err.message);
-//     res.status(500).json({ error: 'Something went wrong with Stripe' });
-//   }
-// };
-
 export const createCheckoutSession = async (req, res) => {
   try {
-   const userId = req.userId ?? null;
-    const { patient, service, amount, email, phone, bookingId } = req.body;
+        const rawUserId = req.userId;
+    const userId = parseInt(rawUserId, 10);
 
-    // ✅ Log the incoming data
-    console.log("➡️ Received Stripe Checkout Data:", {
-      patient,
-      service,
-      amount,
-      email,
-      phone,
-      bookingId,
-    });
-
-    // ✅ Validate required fields
-    if (!patient || !service || !email || !amount || isNaN(parseFloat(amount))) {
-      return res.status(400).json({ error: "Missing or invalid fields in request" });
-    }
-
-    const chargeAmount = parseFloat(amount) * 100;
-
-    // ✅ Ensure FRONTEND_URL is defined
-    const successUrl = `${process.env.FRONTEND_URL || "https://dental-flow-ai-agent.lovable.app"}/success`;
-    const cancelUrl = `${process.env.FRONTEND_URL || "https://dental-flow-ai-agent.lovable.app"}/cancel`;
+    const { patient, service, amount, email, phone, bookingId } = req.body; // ✅ include phone
+    const successUrl = `${process.env.FRONTEND_URL}/success`;
+    const cancelUrl = `${process.env.FRONTEND_URL}/cancel`;
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -105,7 +28,7 @@ export const createCheckoutSession = async (req, res) => {
             product_data: {
               name: `${service} for ${patient}`,
             },
-            unit_amount: chargeAmount,
+            unit_amount: parseFloat(amount) * 100,
           },
           quantity: 1,
         },
@@ -122,25 +45,37 @@ export const createCheckoutSession = async (req, res) => {
       },
     });
 
+    console.log("✅ Stripe Success URL:", successUrl);
+    console.log("✅ Stripe Cancel URL:", cancelUrl);
     const paymentLink = session.url;
 
-    // ✅ Log Stripe response
-    console.log("✅ Stripe Checkout Session Created:", paymentLink);
+    // ✅ Send SMS or Email to the patient
+    // await sendNotificationToPatient({ phone, email, paymentLink, patient, service });
 
-    // ✅ Store notification
-    await pool.query(
-      'INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)',
-      [userId, 'Payment Received', 'Your payment of $' + amount + ' was successful.', 'payment']
-    );
+    // ✅ Notify admin of new checkout link created
+    // await notifyAdmin({ patient, service, amount, link: paymentLink });
+     if (Number.isInteger(userId)) {
+      await pool.query(
+        'INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)',
+        [userId, 'Payment Received', `Your payment of $${amount} was successful.`, 'payment']
+      );
+
+      await sendAndStoreNotification({
+        userId,
+        title: "Invoice Sent",
+        type: "payment",
+        message: `An invoice has been sent for $${amount}.`
+      });
+    } else {
+      console.warn("Skipping notification — invalid userId:", rawUserId);
+    }
 
     res.status(200).json({ url: paymentLink });
-
   } catch (err) {
-    console.error('❌ Stripe Checkout Error:', err.message);
+    console.error('Stripe Checkout error:', err);
     res.status(500).json({ error: 'Something went wrong with Stripe' });
   }
 };
-
 
 
 // Stripe webhook handler
