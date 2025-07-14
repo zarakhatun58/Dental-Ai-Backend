@@ -41,32 +41,45 @@ dotenv.config();
 const app = express();
 const server = http.createServer(app);
 
-initSocket(server,app);
+initSocket(server, app);
 
 
 
 const allowedOrigins = [
   'http://localhost:8080',
   'https://dental-flow-ai-agent.lovable.app',
+  'https://id-preview--99b37adf-faae-4433-9136-3e0778da4a4f.lovable.app',
 ];
+
+// const corsOptions = {
+//   origin: function (origin, callback) {
+//     if (!origin || allowedOrigins.includes(origin)) {
+//       callback(null, true);
+//     } else {
+//       console.error(`❌ CORS blocked from origin: ${origin}`);
+//       callback(new Error('❌ CORS blocked: Not allowed by server'));
+//     }
+//   },
+//   methods: ['GET', 'POST', 'OPTIONS'],
+//   credentials: true,
+// };
 
 const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin || allowedOrigins.includes(origin) || origin?.includes('lovable.app')) {
       callback(null, true);
     } else {
-       console.error(`❌ CORS blocked from origin: ${origin}`);
+      console.error(`❌ CORS blocked from origin: ${origin}`);
       callback(new Error('❌ CORS blocked: Not allowed by server'));
     }
   },
   methods: ['GET', 'POST', 'OPTIONS'],
   credentials: true,
 };
-
 app.use(cors(corsOptions));
 
 app.use(express.json());
-app.use(cookieParser()); 
+app.use(cookieParser());
 
 // ✅ Static assets
 const __filename = fileURLToPath(import.meta.url);
@@ -120,14 +133,14 @@ app.use("/api/dashboard", dashboardRoutes);
 // ✅ important routes
 app.use("/api/appointmentsNew", appointmentApi);
 app.use("/api/patientsNew", patientRoutesNew);
-app.use("/api",  slotRoutes);
+app.use("/api", slotRoutes);
 app.use("/api", alertRoutes);
 app.use("/api", bookingRoutes);
 app.use("/api", chairRoutes);
 app.use("/api", hygienistRoutes);
 app.use("/api", insuranceRoutes);
 app.use("/api/transactions", transactionRoutes);
-app.use("/api/stripe",  stripeRoutes);
+app.use("/api/stripe", stripeRoutes);
 app.use("/api/ai", recomRoutes);
 app.use("/api/campaigns", campRoutes);
 
