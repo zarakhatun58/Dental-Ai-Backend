@@ -4,11 +4,7 @@ import { format } from 'date-fns';
 import genAI from '../lib/geminiClient.js';
 import { sendAndStoreNotification } from '../utils/sendNotification.js';
 
-const TIME_SLOTS = [
-  "08:00:00", "08:30:00", "09:00:00", "09:30:00",
-  "10:00:00", "10:30:00", "11:00:00", "11:30:00",
-  "12:00:00", "12:30:00", "13:00:00", "13:30:00"
-];
+
 
 const formatTime = (dateStr, timeStr) => format(new Date(`${dateStr}T${timeStr}`), "h:mm a");
 
@@ -24,25 +20,26 @@ export const getSlotsByDate = async (req, res) => {
 
   try {
     const [chairs] = await pool.query(`SELECT OperatoryNum, OpName AS chair FROM operatory`);
+    const [appointments] = await pool.query(`
+      SELECT
+        a.AptNum AS id,
+        TIME(a.AptDateTime) AS time,
+        DATE(a.AptDateTime) AS date,
+        o.OpName AS chair,
+        a.AptStatus AS status_raw,
+        a.ProcDescript AS type,
+        p.FName, p.LName,
+        COALESCE(p.WirelessPhone, p.HmPhone, p.WkPhone) AS phone,
+        p.Email
+      FROM appointment a
+      JOIN patient p ON a.PatNum = p.PatNum
+      JOIN operatory o ON a.Op = o.OperatoryNum
+      WHERE DATE(a.AptDateTime) = ?
+    `, [date]);
 
- const [appointments] = await pool.query(`
-  SELECT
-    a.AptNum AS id,
-    TIME(a.AptDateTime) AS time,
-    DATE(a.AptDateTime) AS date,
-    o.OpName AS chair,
-    a.AptStatus AS status_raw,
-    a.ProcDescript AS type,
-    p.FName, p.LName,
-    COALESCE(p.WirelessPhone, p.HmPhone, p.WkPhone) AS phone,
-    p.Email
-  FROM appointment a
-  JOIN patient p ON a.PatNum = p.PatNum
-  JOIN operatory o ON a.Op = o.OperatoryNum
-  WHERE DATE(a.AptDateTime) = ?
-`, [date]);
-
-
+    const [timeRows] = await pool.query(`SELECT time FROM timeslots ORDER BY time ASC`);
+    const TIME_SLOTS = timeRows.map(row => row.time);
+    
     const fullGrid = [];
     for (const { chair } of chairs) {
       for (const time of TIME_SLOTS) {
@@ -73,6 +70,7 @@ export const getSlotsByDate = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch slots", details: err.message });
   }
 };
+
 
 // ✅ POST /api/slots/book
 export const bookSlot = async (req, res) => {
