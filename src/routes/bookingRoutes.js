@@ -104,10 +104,6 @@ router.post("/book-appointment", async (req, res) => {
     const patientFields = ['FName', 'LName', 'WirelessPhone', 'Email'];
     const patientValues = [FName, LName, phone, email];
 
-    if (insurance) {
-      patientFields.push('InsuranceID'); // must match column in your DB
-      patientValues.push(insurance);
-    }
 
     const [patientResult] = await pool.query(
       `INSERT INTO patient (${patientFields.join(", ")}) VALUES (${patientFields.map(() => '?').join(", ")})`,

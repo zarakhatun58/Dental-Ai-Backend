@@ -72,7 +72,7 @@ const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
 export const createCheckoutSession = async (req, res) => {
   try {
-    const userId = req.userId || "default-admin";
+   const userId = req.userId ?? null;
     const { patient, service, amount, email, phone, bookingId } = req.body;
 
     // ✅ Log the incoming data
