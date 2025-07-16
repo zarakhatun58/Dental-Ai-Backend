@@ -47,26 +47,14 @@ initSocket(server, app);
 
 const allowedOrigins = [
   'http://localhost:8080',
-  'https://dental-flow-ai-agent.lovable.app',
-  'https://id-preview--99b37adf-faae-4433-9136-3e0778da4a4f.lovable.app',
+  'https://dental-flow-ai-agent.onrender.com',
+  // 'https://dental-flow-ai-agent.lovable.app',
+  // 'https://id-preview--99b37adf-faae-4433-9136-3e0778da4a4f.lovable.app',
 ];
-
-// const corsOptions = {
-//   origin: function (origin, callback) {
-//     if (!origin || allowedOrigins.includes(origin)) {
-//       callback(null, true);
-//     } else {
-//       console.error(`❌ CORS blocked from origin: ${origin}`);
-//       callback(new Error('❌ CORS blocked: Not allowed by server'));
-//     }
-//   },
-//   methods: ['GET', 'POST', 'OPTIONS'],
-//   credentials: true,
-// };
 
 const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin) || origin?.includes('lovable.app')) {
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       console.error(`❌ CORS blocked from origin: ${origin}`);
@@ -76,6 +64,19 @@ const corsOptions = {
   methods: ['GET', 'POST', 'OPTIONS'],
   credentials: true,
 };
+
+// const corsOptions = {
+//   origin: function (origin, callback) {
+//     if (!origin || allowedOrigins.includes(origin) || origin?.includes('lovable.app')) {
+//       callback(null, true);
+//     } else {
+//       console.error(`❌ CORS blocked from origin: ${origin}`);
+//       callback(new Error('❌ CORS blocked: Not allowed by server'));
+//     }
+//   },
+//   methods: ['GET', 'POST', 'OPTIONS'],
+//   credentials: true,
+// };
 app.use(cors(corsOptions));
 
 app.use(express.json());
