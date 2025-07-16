@@ -152,7 +152,7 @@ const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log("✅ Mode: MySQL + Gemini API + socket (MongoDB/Mongoose not used)");
+  console.log("✅ Mode: MySQL + Gemini API + open dental + socket (MongoDB/Mongoose not used)");
 });
 
 export default app;
