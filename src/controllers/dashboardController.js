@@ -200,7 +200,7 @@ Be concise and business-friendly.
 export const getDashboardData = async (req, res) => {
   try {
     const userId = req.params.userId;
-    console.log("➡️ Dashboard requested for userId:", userId);
+    // console.log("➡️ Dashboard requested for userId:", userId);
 
     if (!userId) {
       console.error("❌ Missing userId");
@@ -308,7 +308,7 @@ LIMIT 2
       aiInsight,
     };
 
-    console.log("📤 AI Insight for UI:", aiInsight);
+    // console.log("📤 AI Insight for UI:", aiInsight);
     return res.json(dashboardData); 
   } catch (error) {
     console.error("❌ Dashboard Error:", error);

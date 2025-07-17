@@ -116,7 +116,20 @@ router.get("/ai-insights", async (req, res) => {
       return res.json({ patients: [], aiInsights: "No patient data available." });
     }
 
-    const prompt = `Analyze this dental patient data and provide a risk level, no-show probability, and upsell opportunity per patient:\n\n${JSON.stringify(patients)}`;
+    const prompt = `
+Analyze the following dental patients and return a JSON array. 
+For each patient, include:
+
+- id
+- noShowProbability (0–100)
+- upsellPotential ("Low", "Medium", "High")
+- riskLevel ("low", "medium", "high")
+
+Respond only with JSON array (no explanation).
+
+Patients:
+${JSON.stringify(patients)}
+`;
 
     console.log("⏳ Sending prompt to Gemini...");
 

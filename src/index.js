@@ -61,7 +61,7 @@ const corsOptions = {
       callback(new Error('❌ CORS blocked: Not allowed by server'));
     }
   },
-  methods: ['GET', 'POST', 'OPTIONS'],
+  methods: ['GET', 'POST','PUT','DELETE', 'OPTIONS'],
   credentials: true,
 };
 
