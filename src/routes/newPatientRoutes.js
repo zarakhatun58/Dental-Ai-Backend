@@ -2,11 +2,11 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import express from "express";
 import pool from "../config/db.js";
-import { sendAndStoreNotification } from "../utils/sendNotification.js";
+import { sendAndStoreNotification, sendReminder } from "../utils/sendNotification.js";
 
 const router = express.Router();
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
 // router.get("/ai-insights", async (req, res) => {
 //   try {
@@ -74,8 +74,6 @@ const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 router.get("/ai-insights", async (req, res) => {
   try {
-    console.log("⏳ Fetching patients from DB...");
-
     const [rows] = await pool.execute(`
       SELECT 
         p.PatNum AS id,
@@ -88,11 +86,8 @@ router.get("/ai-insights", async (req, res) => {
       LEFT JOIN appointment a ON a.PatNum = p.PatNum
       GROUP BY p.PatNum
       ORDER BY lastVisit DESC
-      LIMIT 20;
+      LIMIT 50;
     `);
-
-    console.log("✅ DB query returned:", rows.length, "rows");
-    console.dir(rows, { depth: null });
 
     const patients = rows.map((p) => {
       const lastVisitDate = p.lastVisit ? new Date(p.lastVisit) : null;
@@ -107,59 +102,76 @@ router.get("/ai-insights", async (req, res) => {
         email: p.email?.trim() || "",
         riskLevel: p.riskLevel?.trim().toLowerCase() || "unknown",
         lastVisit: lastVisitDate ? lastVisitDate.toISOString().split("T")[0] : "N/A",
-        daysSince
+        daysSince,
       };
     });
 
     if (!patients.length) {
-      console.warn("⚠️ No patients found.");
       return res.json({ patients: [], aiInsights: "No patient data available." });
     }
 
     const prompt = `
-Analyze the following dental patients and return a JSON array. 
-For each patient, include:
+Analyze the following dental patients and return ONLY a JSON array.
 
+Each object should include:
 - id
 - noShowProbability (0–100)
 - upsellPotential ("Low", "Medium", "High")
 - riskLevel ("low", "medium", "high")
 
-Respond only with JSON array (no explanation).
+Respond only with raw JSON (no Markdown, no explanation, no formatting).
 
 Patients:
 ${JSON.stringify(patients)}
 `;
 
-    console.log("⏳ Sending prompt to Gemini...");
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text().trim();
 
-    let aiInsights;
+    let aiData = [];
     try {
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      aiInsights = await response.text();
-    } catch (aiErr) {
-      console.error("❌ Gemini error:", aiErr);
-      aiInsights = "AI analysis failed.";
+      const cleaned = text.replace(/```(?:json)?\s*|\s*```/g, "").trim();
+      aiData = JSON.parse(cleaned);
+    } catch (parseErr) {
+      console.error("❌ Failed to parse Gemini output:", parseErr);
+      return res.status(500).json({
+        error: "AI responded with invalid JSON.",
+        raw: text,
+      });
     }
 
-    res.json({ patients, aiInsights });
+    res.json({ patients, aiInsights: aiData });
 
-    // try {
-    //   await sendAndStoreNotification({
-    //     userId: req.userId ?? 1,
-    //     title: "AI Insight Available",
-    //     type: "ai-insights",
-    //     message: `New AI-driven recommendations are available for your practice.`
-    //   });
-    // } catch (notifyErr) {
-    //   console.error("❌ Notification error (non-blocking):", notifyErr);
-    // }
+    // Optionally store AI data in DB for reuse later
+    // await saveAIInsightsToDB(aiData);
+
   } catch (err) {
-    console.error("❌ AI Route Error:", err);
+    console.error("❌ AI Insights Route Error:", err);
     res.status(500).json({ error: "Failed to fetch AI insights." });
   }
 });
+
+
+router.post("/send-sms", async (req, res) => {
+  const { phone, email, message, subject } = req.body;
+
+  try {
+    const result = await sendReminder({ phone, email, message, subject });
+
+    res.json({
+      success: true,
+      sent: {
+        sms: result.sms?.sid || "not sent",
+        email: result.email?.messageId || "not sent",
+      },
+    });
+  } catch (err) {
+    console.error("❌ Reminder send failed:", err);
+    res.status(500).json({ error: "Failed to send reminder." });
+  }
+});
+
 
 
 

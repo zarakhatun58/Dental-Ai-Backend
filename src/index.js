@@ -30,6 +30,7 @@ import hygienistRoutes from './routes/hygienistRoutes.js';
 import transactionRoutes from './routes/transactionRoutes.js';
 import stripeRoutes from './routes/stripeRoutes.js';
 import promoRoutes from './routes/promoRoutes.js';
+import logRoutes from './routes/logRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import recomRoutes from './routes/recomRoutes.js';
@@ -98,7 +99,7 @@ app.post('/api/gemini', async (req, res) => {
 
   try {
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -132,10 +133,11 @@ app.use('/api/notification', notificationRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 
 // ✅ important routes
-app.use("/api/appointmentsNew", appointmentApi);
+app.use("/api/appointments", appointmentApi);
 app.use("/api/patientsNew", patientRoutesNew);
 app.use("/api", slotRoutes);
 app.use("/api", alertRoutes);
+app.use("/api", logRoutes);
 app.use("/api", bookingRoutes);
 app.use("/api", chairRoutes);
 app.use("/api", hygienistRoutes);

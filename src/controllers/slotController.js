@@ -125,7 +125,7 @@ export const bookSlot = async (req, res) => {
 };
 
 export const getRiskFromGemini = async (fullName, type, phone, email) => {
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
   const prompt = `
     A dental patient named ${fullName} is booked for a procedure: "${type}".

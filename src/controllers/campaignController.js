@@ -32,7 +32,7 @@ export const getAllCampaigns = async (req, res) => {
 //       `;
 
 //       try {
-//         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });  
+//         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });  
 //         const result = await model.generateContent(prompt);
 //         generatedMessage = result.response.text().trim();
 //       } catch (aiErr) {
@@ -150,7 +150,7 @@ export const regenerateMessage = async (req, res) => {
   try {
     const prompt = `Write a ${tone} dental marketing message targeting ${segment}. 
 The message should be concise, persuasive, and suitable for email or SMS.`;
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const message = response.text().trim();

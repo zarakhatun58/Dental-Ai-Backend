@@ -166,7 +166,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 const generateAIInsight = async (metrics) => {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     const prompt = `
 You are an AI assistant for a dental clinic's dashboard.
@@ -187,10 +187,10 @@ Give a 2-sentence summary with:
 Be concise and business-friendly.
 `;
 
-    const result = await model.generateContent(prompt);
-    return result.response.text().trim() || "No insight generated.";
+    // const result = await model.generateContent(prompt);
+    // return result.response.text().trim() || "No insight generated.";
   } catch (err) {
-    console.error("🧠 Gemini AI Error:", err);
+    // console.error("🧠 Gemini AI Error:", err);
     return "Insight generation failed. Try again later.";
   }
 };
@@ -301,11 +301,11 @@ LIMIT 2
     //   });
     // }
 
-    const aiInsight = await generateAIInsight(metrics);
+    // const aiInsight = await generateAIInsight(metrics);
     const dashboardData = {
       ...metrics,
       recentActivity,
-      aiInsight,
+      // aiInsight,
     };
 
     // console.log("📤 AI Insight for UI:", aiInsight);

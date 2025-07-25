@@ -116,9 +116,10 @@ router.post("/send-promo", async (req, res) => {
 
 router.post("/contact-patient", async (req, res) => {
   console.log("🟡 /contact-patient called:", req.body);
+
   const { patientId, method, message } = req.body;
   if (!patientId || !method || !message) {
-    console.warn("❌ Missing fields contact:", { patientId, method, message });
+    console.warn("❌ Missing fields:", { patientId, method, message });
     return res.status(400).json({ error: "Missing fields" });
   }
 
@@ -127,24 +128,33 @@ router.post("/contact-patient", async (req, res) => {
       `SELECT FName, LName, Email, WirelessPhone FROM patient WHERE PatNum = ?`,
       [patientId]
     );
+
     if (!rows || rows.length === 0) {
-      console.warn("❌ Patient not found contact:", patientId);
+      console.warn("❌ Patient not found:", patientId);
       return res.status(404).json({ error: "Patient not found" });
     }
 
-    const phone = rows[0].WirelessPhone;
-    const email = rows[0].Email;
+    const patient = rows[0];
+    const phone = patient.WirelessPhone;
+    const email = patient.Email;
+
+    const sentStatus = { sms: "not sent", email: "not sent", call: "not made" };
 
     if (method === "sms") {
       if (!phone) return res.status(400).json({ error: "No phone on record" });
       await sendSMS(phone, message);
+      sentStatus.sms = "sent";
     }
+
     if (method === "email") {
       if (!email) return res.status(400).json({ error: "No email on record" });
       await sendEmail(email, `"Your Dentist Message"`, `<p>${message}</p>`);
+      sentStatus.email = "sent";
     }
+
     if (method === "call") {
       console.log(`📞 Simulated call to ${phone}`);
+      sentStatus.call = "simulated";
     }
 
     await pool.query(
@@ -152,12 +162,21 @@ router.post("/contact-patient", async (req, res) => {
       [patientId, method, message]
     );
 
-    res.json({ success: true });
+    res.json({
+      success: true,
+      sent: sentStatus,
+      patient: {
+        name: `${patient.FName} ${patient.LName}`,
+        email,
+        phone,
+      }
+    });
   } catch (err) {
     console.error("❌ /contact-patient ERROR:", err);
     res.status(500).json({ error: "Failed to contact patient" });
   }
 });
+
 
 
 export default router;
