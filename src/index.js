@@ -48,7 +48,7 @@ initSocket(server, app);
 
 const allowedOrigins = [
   'http://localhost:8080',
-  'https://dental-flow-ai-agent.onrender.com',
+  'https://dental-flow-ai-agent-1.onrender.com',
   // 'https://dental-flow-ai-agent.lovable.app',
   // 'https://id-preview--99b37adf-faae-4433-9136-3e0778da4a4f.lovable.app',
 ];
